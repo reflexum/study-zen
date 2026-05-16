@@ -1,0 +1,10 @@
+{
+  "id": "study-zen",
+  "name": "Study Zen",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "Focused study sessions, timers, statistics, and quiet mode for Obsidian.",
+  "author": "Study Zen Team",
+  "authorUrl": "",
+  "isDesktopOnly": true
+}
