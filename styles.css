@@ -1,0 +1,58 @@
+body.study-zen-active {
+  --study-zen-accent: #8fb996;
+  --study-zen-surface: rgba(143, 185, 150, 0.12);
+}
+
+body.study-zen-hide-ribbon .workspace-ribbon {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+}
+
+body.study-zen-dim-sidebars .workspace-split.mod-left-split,
+body.study-zen-dim-sidebars .workspace-split.mod-right-split {
+  opacity: 0.28;
+  transition: opacity 160ms ease;
+}
+
+body.study-zen-dim-sidebars .workspace-split.mod-left-split:hover,
+body.study-zen-dim-sidebars .workspace-split.mod-right-split:hover {
+  opacity: 1;
+}
+
+body.study-zen-hide-statusbar .status-bar {
+  opacity: 0;
+  pointer-events: none;
+}
+
+body.study-zen-calm-editor .workspace-leaf.mod-active .view-content {
+  box-shadow: inset 0 0 0 1px var(--study-zen-surface);
+}
+
+.study-zen-status {
+  color: var(--study-zen-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.study-zen-stats {
+  padding: 20px;
+}
+
+.study-zen-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.study-zen-stat-card {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 10px;
+  padding: 14px;
+  background: var(--background-secondary);
+}
+
+.study-zen-stat-value {
+  font-size: 1.5em;
+  font-weight: 700;
+}
