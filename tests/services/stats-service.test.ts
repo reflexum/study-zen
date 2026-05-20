@@ -37,6 +37,7 @@ describe("StatsService", () => {
     expect(stats.completedSessions).toBe(2);
     expect(stats.totalSessions).toBe(3);
     expect(stats.completionRate).toBeCloseTo(2 / 3);
+    expect(stats.interruptionRate).toBe(0);
     expect(stats.currentStreak).toBeGreaterThanOrEqual(2);
     expect(stats.averageSessionSeconds).toBe(2200);
     expect(stats.mostUsedMode).toBe("sprint");
@@ -53,5 +54,19 @@ describe("StatsService", () => {
 
     expect(days).toHaveLength(1);
     expect(days[0]).toMatchObject({ focusSeconds: 1500, completedSessions: 1 });
+  });
+
+  it("detects focus patterns for recommendations", () => {
+    const service = new StatsService();
+    const stats = service.calculate([
+      session({ focusedSeconds: 900, focusRating: 2, interrupted: true }),
+      session({ focusedSeconds: 1200, focusRating: 3, interrupted: false }),
+      session({ focusedSeconds: 1500, focusRating: 4, interrupted: true })
+    ]);
+
+    expect(stats.averageFocusRating).toBe(3);
+    expect(stats.interruptionRate).toBeCloseTo(2 / 3);
+    expect(stats.bestFocusHour).toBe(12);
+    expect(stats.recommendations.some((recommendation) => recommendation.includes("strongest focus window"))).toBe(true);
   });
 });

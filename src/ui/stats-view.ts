@@ -33,9 +33,12 @@ export class StatsView extends ItemView {
     this.card(grid, "Total focus", this.statsService.formatDuration(stats.totalFocusSeconds));
     this.card(grid, "Sessions", String(stats.totalSessions));
     this.card(grid, "Completion", `${Math.round(stats.completionRate * 100)}%`);
+    this.card(grid, "Interruptions", `${Math.round(stats.interruptionRate * 100)}%`);
     this.card(grid, "Streak", `${stats.currentStreak} days`);
     this.card(grid, "Average", this.statsService.formatDuration(stats.averageSessionSeconds));
     this.card(grid, "Top mode", stats.mostUsedMode ? modeLabel(stats.mostUsedMode) : "None yet");
+    this.card(grid, "Focus rating", stats.averageFocusRating === undefined ? "None yet" : `${stats.averageFocusRating}/5`);
+    this.card(grid, "Best window", stats.bestFocusHour === undefined ? "None yet" : `${stats.bestFocusHour.toString().padStart(2, "0")}:00`);
 
     container.createEl("h3", { text: "Recommendations" });
     const list = container.createEl("ul");

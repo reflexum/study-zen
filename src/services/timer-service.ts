@@ -35,19 +35,36 @@ export class TimerService {
   }
 
   private getTickMessage(session: ActiveSession, settings: StudyZenSettings): string | undefined {
-    if (session.mode === "pomodoro") {
-      return this.applyPomodoroPhaseTransition(session, settings);
-    }
+    let cycleMessage: string | undefined;
 
-    if (session.mode === "deep") {
+    if (session.mode === "pomodoro") {
+      cycleMessage = this.applyPomodoroPhaseTransition(session, settings);
+    } else if (session.mode === "deep") {
       const checkpointSeconds = settings.deepCheckpointMinutes * 60;
       if (checkpointSeconds > 0 && session.elapsedSeconds - session.lastCheckpointSeconds >= checkpointSeconds) {
         session.lastCheckpointSeconds = session.elapsedSeconds;
-        return "Deep Study checkpoint: are you still with the goal?";
+        cycleMessage = "Deep Study checkpoint: are you still with the goal?";
       }
     }
 
-    return undefined;
+    const completionMessage = this.getPlannedCompletionMessage(session);
+    if (cycleMessage && completionMessage) return `${completionMessage} ${cycleMessage}`;
+    return cycleMessage ?? completionMessage;
+  }
+
+  private getPlannedCompletionMessage(session: ActiveSession): string | undefined {
+    if (session.mode === "pomodoro") return undefined;
+
+    const plannedSeconds = this.getPlannedFocusSeconds(session);
+    if (plannedSeconds === null || session.plannedCompletionNotified || session.focusedSeconds < plannedSeconds) return undefined;
+
+    session.plannedCompletionNotified = true;
+    return "Planned focus time complete. Finish the session or continue intentionally.";
+  }
+
+  private getPlannedFocusSeconds(session: ActiveSession): number | null {
+    if (!Number.isFinite(session.plannedMinutes) || session.plannedMinutes === undefined || session.plannedMinutes <= 0) return null;
+    return session.plannedMinutes * 60;
   }
 
   private applyPomodoroPhaseTransition(session: ActiveSession, settings: StudyZenSettings): string | undefined {

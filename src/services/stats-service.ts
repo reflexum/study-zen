@@ -5,9 +5,12 @@ export interface StudyZenStats {
   completedSessions: number;
   totalSessions: number;
   completionRate: number;
+  interruptionRate: number;
   currentStreak: number;
   averageSessionSeconds: number;
+  averageFocusRating?: number;
   mostUsedMode?: StudyMode;
+  bestFocusHour?: number;
   recommendations: string[];
 }
 
@@ -21,8 +24,10 @@ export class StatsService {
   calculate(sessions: StudySessionRecord[]): StudyZenStats {
     const totalSessions = sessions.length;
     const completedSessions = sessions.filter((session) => session.completed).length;
+    const interruptedSessions = sessions.filter((session) => session.interrupted).length;
     const totalFocusSeconds = sessions.reduce((sum, session) => sum + session.focusedSeconds, 0);
     const averageSessionSeconds = totalSessions === 0 ? 0 : Math.round(totalFocusSeconds / totalSessions);
+    const averageFocusRating = this.getAverageFocusRating(sessions);
     const mostUsedMode = this.getMostUsedMode(sessions);
 
     const stats: StudyZenStats = {
@@ -30,9 +35,12 @@ export class StatsService {
       completedSessions,
       totalSessions,
       completionRate: totalSessions === 0 ? 0 : completedSessions / totalSessions,
+      interruptionRate: totalSessions === 0 ? 0 : interruptedSessions / totalSessions,
       currentStreak: this.getCurrentStreak(sessions),
       averageSessionSeconds,
+      averageFocusRating,
       mostUsedMode,
+      bestFocusHour: this.getBestFocusHour(sessions),
       recommendations: []
     };
 
@@ -67,8 +75,25 @@ export class StatsService {
     return [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
   }
 
+  private getAverageFocusRating(sessions: StudySessionRecord[]): number | undefined {
+    const ratings = sessions.map((session) => session.focusRating).filter((rating): rating is number => rating !== undefined);
+    if (ratings.length === 0) return undefined;
+    return Math.round((ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length) * 10) / 10;
+  }
+
+  private getBestFocusHour(sessions: StudySessionRecord[]): number | undefined {
+    const focusByHour = new Map<number, number>();
+    for (const session of sessions) {
+      if (session.focusedSeconds <= 0) continue;
+      const hour = new Date(session.startedAt).getHours();
+      focusByHour.set(hour, (focusByHour.get(hour) ?? 0) + session.focusedSeconds);
+    }
+
+    return [...focusByHour.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+  }
+
   private getCurrentStreak(sessions: StudySessionRecord[]): number {
-    const days = new Set(sessions.map((session) => this.getLocalDateKey(new Date(session.startedAt))));
+    const days = new Set(sessions.filter((session) => session.focusedSeconds > 0).map((session) => this.getLocalDateKey(new Date(session.startedAt))));
     let streak = 0;
     const cursor = new Date();
 
@@ -94,6 +119,9 @@ export class StatsService {
 
     const recommendations: string[] = [];
     if (stats.currentStreak >= 3) recommendations.push(`You studied ${stats.currentStreak} days in a row. Keep the streak with a short Zen Session today.`);
+    if (stats.bestFocusHour !== undefined) recommendations.push(`Your strongest focus window starts around ${stats.bestFocusHour.toString().padStart(2, "0")}:00. Protect it for demanding study work.`);
+    if (stats.interruptionRate >= 0.3 && sessions.length >= 3) recommendations.push("Interruptions are frequent. Use Focus Shield and a shorter planned session for the next round.");
+    if (stats.averageFocusRating !== undefined && stats.averageFocusRating < 3) recommendations.push("Recent focus ratings are low. Try one concrete Study Sprint before a longer Deep Study block.");
     if (stats.mostUsedMode) recommendations.push(`${modeLabel(stats.mostUsedMode)} is your most used mode. Use it when you need an easy start.`);
     if (stats.completionRate < 0.5 && sessions.length >= 3) recommendations.push("Your completion rate is below 50%. Try shorter Study Sprint sessions.");
     if (stats.averageSessionSeconds > 3600) recommendations.push("Your average session is long. Add Deep Study checkpoints to protect attention quality.");

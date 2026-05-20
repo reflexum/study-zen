@@ -11,6 +11,7 @@ export class FocusShieldService {
     document.body.classList.toggle("study-zen-hide-ribbon", settings.hideRibbon);
     document.body.classList.toggle("study-zen-dim-sidebars", settings.dimSidebars);
     document.body.classList.toggle("study-zen-hide-statusbar", settings.hideStatusBar);
+    document.body.classList.toggle("study-zen-hide-notifications", settings.hideNotifications);
     document.body.classList.toggle("study-zen-calm-editor", settings.calmEditor);
   }
 
@@ -20,6 +21,7 @@ export class FocusShieldService {
       "study-zen-hide-ribbon",
       "study-zen-dim-sidebars",
       "study-zen-hide-statusbar",
+      "study-zen-hide-notifications",
       "study-zen-calm-editor"
     );
   }

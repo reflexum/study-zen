@@ -10,7 +10,7 @@ type NumberSettingKey =
   | "pomodoroFocusMinutes"
   | "pomodoroBreakMinutes";
 
-type FocusShieldKey = "enabled" | "hideRibbon" | "dimSidebars" | "hideStatusBar" | "calmEditor";
+type FocusShieldKey = "enabled" | "hideRibbon" | "dimSidebars" | "hideStatusBar" | "hideNotifications" | "calmEditor";
 
 export interface StudyZenPluginSettingsHost extends Plugin {
   settings: StudyZenSettings;
@@ -48,6 +48,7 @@ export class StudyZenSettingTab extends PluginSettingTab {
     this.focusToggle("Hide ribbon", "hideRibbon");
     this.focusToggle("Dim sidebars", "dimSidebars");
     this.focusToggle("Hide status bar", "hideStatusBar");
+    this.focusToggle("Mute Obsidian notices", "hideNotifications");
     this.focusToggle("Calm editor", "calmEditor");
 
     containerEl.createEl("h3", { text: "System Focus" });
