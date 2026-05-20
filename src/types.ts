@@ -1,3 +1,5 @@
+import { bi } from "./i18n";
+
 export type StudyMode = "zen" | "pomodoro" | "sprint" | "deep";
 export type PomodoroPhase = "focus" | "break";
 
@@ -20,10 +22,16 @@ export interface SystemFocusSettings {
 }
 
 export const SYSTEM_FOCUS_PLATFORM_PRESETS: Record<SystemFocusSettings["platformPreset"], { label: string; description: string }> = {
-  custom: { label: "Custom", description: "Use your own local shell commands." },
-  "macos-shortcuts": { label: "macOS Shortcuts", description: "Run local commands that trigger macOS Shortcuts or Focus." },
-  "linux-custom": { label: "Linux custom", description: "Run local Linux desktop focus commands." },
-  "windows-powershell": { label: "Windows PowerShell", description: "Run local PowerShell commands for focus or notifications." }
+  custom: { label: bi("Custom", "Свои команды"), description: bi("Use your own local shell commands.", "Используйте собственные локальные shell-команды.") },
+  "macos-shortcuts": {
+    label: "macOS Shortcuts",
+    description: bi("Run local commands that trigger macOS Shortcuts or Focus.", "Запускайте локальные команды для macOS Shortcuts или Focus.")
+  },
+  "linux-custom": { label: bi("Linux custom", "Linux свои команды"), description: bi("Run local Linux desktop focus commands.", "Запускайте локальные команды фокуса для Linux desktop.") },
+  "windows-powershell": {
+    label: "Windows PowerShell",
+    description: bi("Run local PowerShell commands for focus or notifications.", "Запускайте локальные PowerShell-команды для фокуса или уведомлений.")
+  }
 };
 
 export interface StudyZenSettings {
@@ -73,6 +81,7 @@ export interface ActiveSession {
 export interface StudyZenData {
   settings: StudyZenSettings;
   sessions: StudySessionRecord[];
+  activeSession: ActiveSession | null;
 }
 
 export interface StartSessionInput {
@@ -119,12 +128,12 @@ export const VIEW_TYPE_STUDY_ZEN_FOCUS = "study-zen-focus";
 export function modeLabel(mode: StudyMode): string {
   switch (mode) {
     case "zen":
-      return "Zen Session";
+      return bi("Zen Session", "Дзен-сессия");
     case "pomodoro":
-      return "Pomodoro";
+      return bi("Pomodoro", "Помодоро");
     case "sprint":
-      return "Study Sprint";
+      return bi("Study Sprint", "Учебный спринт");
     case "deep":
-      return "Deep Study";
+      return bi("Deep Study", "Глубокая учёба");
   }
 }

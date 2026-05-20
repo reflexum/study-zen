@@ -1,12 +1,13 @@
 import { ActiveSession, modeLabel } from "../types";
+import { bi } from "../i18n";
 
 export function formatStatusText(session: ActiveSession | null, formatSeconds: (seconds: number) => string): string {
-  if (!session) return "Study Zen idle";
+  if (!session) return bi("Study Zen idle", "Study Zen ждёт");
 
-  const state = session.paused ? " paused" : "";
+  const state = session.paused ? ` ${bi("paused", "пауза")}` : "";
   if (session.mode === "pomodoro") {
-    const phase = session.pomodoroPhase === "break" ? "break" : "focus";
-    return `Study Zen: ${modeLabel(session.mode)} (${phase})${state} elapsed ${formatSeconds(session.elapsedSeconds)} · focus ${formatSeconds(session.focusedSeconds)}`;
+    const phase = session.pomodoroPhase === "break" ? bi("break", "перерыв") : bi("focus", "фокус");
+    return `Study Zen: ${modeLabel(session.mode)} (${phase})${state} · ${bi("elapsed", "прошло")} ${formatSeconds(session.elapsedSeconds)} · ${bi("focus", "фокус")} ${formatSeconds(session.focusedSeconds)}`;
   }
 
   return `Study Zen: ${modeLabel(session.mode)}${state} ${formatSeconds(session.focusedSeconds)}`;

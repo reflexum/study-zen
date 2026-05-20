@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, FocusShieldSettings, StudySessionRecord, StudyZenData, StudyZenSettings, SystemFocusSettings } from "../types";
+import { ActiveSession, DEFAULT_SETTINGS, FocusShieldSettings, StudySessionRecord, StudyZenData, StudyZenSettings, SystemFocusSettings } from "../types";
 
 type StoredStudyZenSettings = Partial<Omit<StudyZenSettings, "focusShield" | "systemFocus">> & {
   focusShield?: Partial<FocusShieldSettings>;
@@ -8,6 +8,7 @@ type StoredStudyZenSettings = Partial<Omit<StudyZenSettings, "focusShield" | "sy
 export interface StoredStudyZenData {
   settings?: StoredStudyZenSettings;
   sessions?: StudySessionRecord[];
+  activeSession?: ActiveSession | null;
 }
 
 export function mergeStudyZenData(stored: StoredStudyZenData | null | undefined): StudyZenData {
@@ -24,6 +25,21 @@ export function mergeStudyZenData(stored: StoredStudyZenData | null | undefined)
         ...stored?.settings?.systemFocus
       }
     },
-    sessions: stored?.sessions ?? []
+    sessions: stored?.sessions ?? [],
+    activeSession: mergeActiveSession(stored?.activeSession)
+  };
+}
+
+function mergeActiveSession(session: ActiveSession | null | undefined): ActiveSession | null {
+  if (!session) return null;
+
+  return {
+    ...session,
+    elapsedSeconds: session.elapsedSeconds ?? 0,
+    focusedSeconds: session.focusedSeconds ?? 0,
+    paused: true,
+    pomodoroCyclesCompleted: session.pomodoroCyclesCompleted ?? 0,
+    lastCheckpointSeconds: session.lastCheckpointSeconds ?? 0,
+    plannedCompletionNotified: session.plannedCompletionNotified ?? false
   };
 }

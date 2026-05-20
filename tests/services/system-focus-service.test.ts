@@ -24,7 +24,7 @@ describe("SystemFocusService", () => {
 
     await service.test("   ");
 
-    expect(noticeSpy).toHaveBeenCalledWith("Study Zen system focus test command is empty.", undefined);
+    expect(noticeSpy).toHaveBeenCalledWith("Study Zen system focus test command is empty. / Тестовая команда системного фокуса Study Zen пустая.", undefined);
     expect(execMock).not.toHaveBeenCalled();
   });
 
@@ -35,7 +35,7 @@ describe("SystemFocusService", () => {
 
     await service.runStart({ enabled: true, platformPreset: "custom", startCommand: "danger", endCommand: "" });
 
-    expect(noticeSpy).toHaveBeenCalledWith("Study Zen system focus commands are desktop-only.", undefined);
+    expect(noticeSpy).toHaveBeenCalledWith("Study Zen system focus commands are desktop-only. / Команды системного фокуса Study Zen доступны только в desktop-версии.", undefined);
     expect(execMock).not.toHaveBeenCalled();
   });
 });

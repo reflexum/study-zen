@@ -1,5 +1,6 @@
 import { App, Modal, Notice, Setting, TextComponent } from "obsidian";
 import { getDefaultPlannedMinutes } from "../domain/session-defaults";
+import { bi } from "../i18n";
 import { STUDY_MODES, StartSessionInput, StudyMode, StudyZenSettings, modeLabel } from "../types";
 
 export class StartSessionModal extends Modal {
@@ -18,11 +19,11 @@ export class StartSessionModal extends Modal {
   onOpen(): void {
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.createEl("h2", { text: "Start Study Zen" });
+    contentEl.createEl("h2", { text: bi("Start Study Zen", "Начать Study Zen") });
 
     let plannedMinutesText: TextComponent | undefined;
 
-    new Setting(contentEl).setName("Mode").addDropdown((dropdown) => {
+    new Setting(contentEl).setName(bi("Mode", "Режим")).addDropdown((dropdown) => {
       for (const mode of STUDY_MODES) dropdown.addOption(mode, modeLabel(mode));
       dropdown.setValue(this.mode).onChange((value) => {
         this.mode = value as StudyMode;
@@ -31,19 +32,19 @@ export class StartSessionModal extends Modal {
       });
     });
 
-    new Setting(contentEl).setName("Study goal").addText((text) => {
-      text.setPlaceholder("What are you studying?").onChange((value) => {
+    new Setting(contentEl).setName(bi("Study goal", "Учебная цель")).addText((text) => {
+      text.setPlaceholder(bi("What are you studying?", "Что вы изучаете?")).onChange((value) => {
         this.goal = value;
       });
     });
 
-    new Setting(contentEl).setName("Expected result").addText((text) => {
-      text.setPlaceholder("What should be done by the end?").onChange((value) => {
+    new Setting(contentEl).setName(bi("Expected result", "Ожидаемый результат")).addText((text) => {
+      text.setPlaceholder(bi("What should be done by the end?", "Что должно быть готово к концу?")).onChange((value) => {
         this.expectedResult = value;
       });
     });
 
-    new Setting(contentEl).setName("Planned minutes").addText((text) => {
+    new Setting(contentEl).setName(bi("Planned minutes", "План в минутах")).addText((text) => {
       plannedMinutesText = text;
       text.setValue(this.plannedMinutesValue).onChange((value) => {
         this.plannedMinutesValue = value;
@@ -52,30 +53,30 @@ export class StartSessionModal extends Modal {
 
     new Setting(contentEl).addButton((button) => {
       button
-        .setButtonText("Start")
+        .setButtonText(bi("Start", "Начать"))
         .setCta()
         .onClick(async () => {
           if (this.starting) return;
           if (!this.goal.trim()) {
-            new Notice("Add a Study Zen goal before starting.");
+            new Notice(bi("Add a Study Zen goal before starting.", "Добавьте цель Study Zen перед стартом."));
             return;
           }
 
           const plannedMinutes = Number(this.plannedMinutesValue);
           if (!Number.isFinite(plannedMinutes) || plannedMinutes <= 0) {
-            new Notice("Planned minutes must be a positive number.");
+            new Notice(bi("Planned minutes must be a positive number.", "План в минутах должен быть положительным числом."));
             return;
           }
 
           this.starting = true;
-          button.setDisabled(true).setButtonText("Starting...");
+          button.setDisabled(true).setButtonText(bi("Starting...", "Запуск..."));
 
           let started = false;
           try {
             started = await this.onSubmit({ mode: this.mode, goal: this.goal, expectedResult: this.expectedResult, plannedMinutes });
           } catch (error) {
             console.error("Study Zen failed to start session", error);
-            new Notice("Study Zen could not start the session. Please try again.");
+            new Notice(bi("Study Zen could not start the session. Please try again.", "Study Zen не смог начать сессию. Попробуйте ещё раз."));
           }
 
           this.starting = false;
@@ -84,7 +85,7 @@ export class StartSessionModal extends Modal {
             return;
           }
 
-          button.setDisabled(false).setButtonText("Start");
+          button.setDisabled(false).setButtonText(bi("Start", "Начать"));
         });
     });
   }

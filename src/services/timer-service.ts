@@ -1,4 +1,5 @@
 import { ActiveSession, DEFAULT_SETTINGS, StudyZenSettings } from "../types";
+import { bi } from "../i18n";
 
 export interface TimerEvent {
   session: ActiveSession;
@@ -43,7 +44,7 @@ export class TimerService {
       const checkpointSeconds = settings.deepCheckpointMinutes * 60;
       if (checkpointSeconds > 0 && session.elapsedSeconds - session.lastCheckpointSeconds >= checkpointSeconds) {
         session.lastCheckpointSeconds = session.elapsedSeconds;
-        cycleMessage = "Deep Study checkpoint: are you still with the goal?";
+        cycleMessage = bi("Deep Study checkpoint: are you still with the goal?", "Контрольная точка глубокой учёбы: вы всё ещё держитесь цели?");
       }
     }
 
@@ -59,7 +60,7 @@ export class TimerService {
     if (plannedSeconds === null || session.plannedCompletionNotified || session.focusedSeconds < plannedSeconds) return undefined;
 
     session.plannedCompletionNotified = true;
-    return "Planned focus time complete. Finish the session or continue intentionally.";
+    return bi("Planned focus time complete. Finish the session or continue intentionally.", "Плановое время фокуса завершено. Завершите сессию или осознанно продолжайте.");
   }
 
   private getPlannedFocusSeconds(session: ActiveSession): number | null {
@@ -80,11 +81,11 @@ export class TimerService {
     session.phaseStartedAtSeconds = session.elapsedSeconds;
     if (session.pomodoroPhase === "break") {
       session.pomodoroPhase = "focus";
-      return "Break complete. Start the next focus round.";
+      return bi("Break complete. Start the next focus round.", "Перерыв завершён. Начните следующий фокус-раунд.");
     }
 
     session.pomodoroPhase = "break";
     session.pomodoroCyclesCompleted += 1;
-    return "Focus round complete. Take a short break.";
+    return bi("Focus round complete. Take a short break.", "Фокус-раунд завершён. Сделайте короткий перерыв.");
   }
 }
