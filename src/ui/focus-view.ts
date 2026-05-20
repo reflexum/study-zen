@@ -1,10 +1,12 @@
 import { ButtonComponent, ItemView, WorkspaceLeaf } from "obsidian";
+import { bi } from "../i18n";
 import { ActiveSession, StudyZenSettings, VIEW_TYPE_STUDY_ZEN_FOCUS, modeLabel } from "../types";
 
 export interface FocusViewActions {
   start: () => void;
   pause: () => void;
   resume: () => void;
+  skipBreak: () => void;
   stop: () => void;
   openStats: () => void;
 }
@@ -25,7 +27,7 @@ export class FocusView extends ItemView {
   }
 
   getDisplayText(): string {
-    return "Study Zen Focus";
+    return bi("Study Zen Focus", "Фокус Study Zen");
   }
 
   getIcon(): string {
@@ -51,15 +53,15 @@ export class FocusView extends ItemView {
   }
 
   private renderIdle(container: Element): void {
-    container.createEl("h2", { text: "Study Zen Focus" });
+    container.createEl("h2", { text: bi("Study Zen Focus", "Фокус Study Zen") });
     container.createDiv({
       cls: "study-zen-focus-empty",
-      text: "No active focus session."
+      text: bi("No active focus session.", "Нет активной сессии фокуса.")
     });
 
     const controls = container.createDiv({ cls: "study-zen-focus-controls" });
-    this.actionButton(controls, "Start session", "play", this.actions.start, true);
-    this.actionButton(controls, "Stats", "bar-chart-3", this.actions.openStats);
+    this.actionButton(controls, bi("Start session", "Начать сессию"), "play", this.actions.start, true);
+    this.actionButton(controls, bi("Stats", "Статистика"), "bar-chart-3", this.actions.openStats);
   }
 
   private renderActive(container: Element, session: ActiveSession): void {
@@ -72,7 +74,7 @@ export class FocusView extends ItemView {
     header.createEl("h2", { text: modeLabel(session.mode) });
     header.createDiv({
       cls: session.paused ? "study-zen-focus-state is-paused" : "study-zen-focus-state",
-      text: session.paused ? "Paused" : "In focus"
+      text: session.paused ? bi("Paused", "Пауза") : bi("In focus", "В фокусе")
     });
 
     const hero = container.createDiv({ cls: "study-zen-focus-hero" });
@@ -82,25 +84,27 @@ export class FocusView extends ItemView {
     ringInner.createDiv({ cls: "study-zen-focus-time", text: this.formatSeconds(session.focusedSeconds) });
     ringInner.createDiv({
       cls: "study-zen-focus-progress-label",
-      text: plannedSeconds === null ? "Open-ended" : `${Math.round(progress * 100)}% planned`
+      text: plannedSeconds === null ? bi("Open-ended", "Без лимита") : `${Math.round(progress * 100)}% ${bi("planned", "плана")}`
     });
 
     const summary = hero.createDiv({ cls: "study-zen-focus-summary" });
-    summary.createDiv({ cls: "study-zen-focus-goal-label", text: "Current goal" });
+    summary.createDiv({ cls: "study-zen-focus-goal-label", text: bi("Current goal", "Текущая цель") });
     summary.createDiv({ cls: "study-zen-focus-goal", text: session.goal });
     if (session.expectedResult) summary.createDiv({ cls: "study-zen-focus-result", text: session.expectedResult });
 
     const metrics = container.createDiv({ cls: "study-zen-focus-metrics" });
-    this.metric(metrics, "Elapsed", this.formatSeconds(session.elapsedSeconds));
-    this.metric(metrics, "Remaining", remainingSeconds === null ? "Open" : this.formatSeconds(remainingSeconds));
-    this.metric(metrics, "Phase", this.getPhaseLabel(session, settings));
-    this.metric(metrics, "Cycles", String(session.pomodoroCyclesCompleted));
+    this.metric(metrics, bi("Elapsed", "Прошло"), this.formatSeconds(session.elapsedSeconds));
+    this.metric(metrics, bi("Remaining", "Осталось"), remainingSeconds === null ? bi("Open", "Свободно") : this.formatSeconds(remainingSeconds));
+    this.metric(metrics, bi("Phase", "Фаза"), this.getPhaseLabel(session, settings));
+    this.metric(metrics, bi("Phase left", "До конца фазы"), this.getPhaseRemainingLabel(session, settings));
+    this.metric(metrics, bi("Cycles", "Циклы"), String(session.pomodoroCyclesCompleted));
 
     const controls = container.createDiv({ cls: "study-zen-focus-controls" });
-    if (session.paused) this.actionButton(controls, "Resume", "play", this.actions.resume, true);
-    else this.actionButton(controls, "Pause", "pause", this.actions.pause);
-    this.actionButton(controls, "Finish", "square", this.actions.stop, true);
-    this.actionButton(controls, "Stats", "bar-chart-3", this.actions.openStats);
+    if (session.paused) this.actionButton(controls, bi("Resume", "Продолжить"), "play", this.actions.resume, true);
+    else this.actionButton(controls, bi("Pause", "Пауза"), "pause", this.actions.pause);
+    if (session.mode === "pomodoro" && session.pomodoroPhase === "break") this.actionButton(controls, bi("Skip break", "Пропустить перерыв"), "skip-forward", this.actions.skipBreak);
+    this.actionButton(controls, bi("Finish", "Завершить"), "square", this.actions.stop, true);
+    this.actionButton(controls, bi("Stats", "Статистика"), "bar-chart-3", this.actions.openStats);
   }
 
   private getPlannedFocusSeconds(session: ActiveSession): number | null {
@@ -110,12 +114,22 @@ export class FocusView extends ItemView {
 
   private getPhaseLabel(session: ActiveSession, settings: StudyZenSettings): string {
     if (session.mode === "pomodoro") {
-      const phase = session.pomodoroPhase === "break" ? "Break" : "Focus";
+      const phase = session.pomodoroPhase === "break" ? bi("Break", "Перерыв") : bi("Focus", "Фокус");
       return `${phase} ${settings.pomodoroFocusMinutes}/${settings.pomodoroBreakMinutes}m`;
     }
 
-    if (session.mode === "deep") return `Checkpoint every ${settings.deepCheckpointMinutes}m`;
-    return "Single focus block";
+    if (session.mode === "deep") return bi(`Checkpoint every ${settings.deepCheckpointMinutes}m`, `Контроль каждые ${settings.deepCheckpointMinutes} мин`);
+    return bi("Single focus block", "Один фокус-блок");
+  }
+
+  private getPhaseRemainingLabel(session: ActiveSession, settings: StudyZenSettings): string {
+    if (session.mode !== "pomodoro") return bi("Not phased", "Без фаз");
+
+    const focusSeconds = (settings.pomodoroFocusMinutes > 0 ? settings.pomodoroFocusMinutes : 25) * 60;
+    const breakSeconds = (settings.pomodoroBreakMinutes > 0 ? settings.pomodoroBreakMinutes : 5) * 60;
+    const phaseLength = session.pomodoroPhase === "break" ? breakSeconds : focusSeconds;
+    const startedAt = session.phaseStartedAtSeconds ?? 0;
+    return this.formatSeconds(Math.max(0, phaseLength - (session.elapsedSeconds - startedAt)));
   }
 
   private metric(parent: HTMLElement, label: string, value: string): void {

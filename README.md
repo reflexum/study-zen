@@ -1,81 +1,88 @@
 # Study Zen
 
-Obsidian plugin for focused study sessions, quiet mode, timers, and local study statistics.
+## English
 
-## Product Scenario
+Study Zen is an Obsidian desktop plugin for deliberate study focus: structured sessions, a calm focus mode, visual timers, local statistics, and recovery for unfinished work.
+
+### Product Scenario
 
 Study Zen is designed for students and independent researchers who keep notes, sources, and study plans in Obsidian. The plugin turns a study session into a small ritual: choose an intention, reduce workspace noise, keep a visible timer, then finish with a reflection. The goal is not only to measure time, but to build a habit of deliberate concentration.
 
-## Features
+### Features
 
 - Start structured study sessions from Obsidian.
 - Choose between Zen Session, Pomodoro, Study Sprint, and Deep Study modes.
 - Reduce distractions with Focus Shield UI styling and optional muted Obsidian notices.
-- Use a dedicated Focus view with a visual progress timer, active goal, session phase, and quick pause/resume/finish controls.
+- Use a dedicated Focus view with visual progress, active goal, Pomodoro phase countdown, and quick pause/resume/finish controls.
+- Restore unfinished active sessions after Obsidian restarts.
 - Track focus time, completion rate, interruption rate, streaks, daily focus, focus ratings, best focus window, and recent sessions.
-- Get lightweight local recommendations based on session history and work patterns.
+- Get local recommendations based on session history and work patterns.
 - Optionally run desktop system focus commands when sessions start and end.
 
-## Installation
+### Quick Start
 
-### From Release
+Use the command palette:
+
+- `Study Zen: Start session / Начать сессию` - choose mode, goal, result, and duration.
+- `Study Zen: Stop session / Завершить сессию` - finish the session and save reflection.
+- `Study Zen: Pause session / Поставить на паузу` - pause the active timer.
+- `Study Zen: Resume session / Продолжить сессию` - resume the active timer.
+- `Study Zen: Open focus view / Открыть экран фокуса` - open the visual focus dashboard.
+- `Study Zen: Open stats / Открыть статистику` - view focus statistics and recommendations.
+
+### Installation
 
 1. Download the latest `study-zen-<version>.zip` from GitHub Releases.
 2. Extract it to `.obsidian/plugins/study-zen/` in your vault.
 3. Enable Study Zen in Obsidian settings.
 
-### Manual
+### Privacy
 
-1. Download `main.js`, `manifest.json`, and `styles.css` from a release.
-2. Place them in `.obsidian/plugins/study-zen/`.
-3. Enable the plugin.
-
-## Quick Start
-
-Use the command palette:
-
-- `Study Zen: Start session` - choose mode, goal, result, and duration.
-- `Study Zen: Stop session` - finish the session and save reflection.
-- `Study Zen: Pause session` - pause the active timer.
-- `Study Zen: Resume session` - resume the active timer.
-- `Study Zen: Open focus view` - open the visual focus dashboard.
-- `Study Zen: Open stats` - view focus statistics and recommendations.
-
-## Study Modes
-
-- **Zen Session**: flexible open-ended learning session.
-- **Pomodoro**: focus and break cycles.
-- **Study Sprint**: short session for one concrete outcome.
-- **Deep Study**: longer session with checkpoint reminders.
-
-## Settings
-
-### Session Defaults
-
-- Default session mode.
-- Default durations for Zen Session, Study Sprint, and Deep Study.
-- Pomodoro focus and break durations.
-- Deep Study checkpoint interval.
-
-### Focus Shield
-
-- Hide ribbon.
-- Dim sidebars.
-- Hide status bar.
-- Mute Obsidian notices.
-- Add calmer editor styling.
-
-### System Focus
-
-System Focus is desktop-only and disabled by default. It can run local shell commands when a session starts or ends. Use it for macOS Shortcuts, Linux notification tools, Windows PowerShell scripts, or custom focus automation.
-
-Review commands before enabling this feature.
-
-## Privacy
-
-- Session history and settings stay in Obsidian plugin data.
+- Session history, settings, and active-session recovery data stay in Obsidian plugin data.
 - No cloud sync or external analytics are used.
 - System Focus commands run locally only when explicitly enabled.
+
+## Русский
+
+Study Zen — desktop-плагин Obsidian для осознанной концентрации: структурированные учебные сессии, спокойный режим фокуса, визуальные таймеры, локальная статистика и восстановление незавершённой работы.
+
+### Сценарий продукта
+
+Study Zen рассчитан на студентов и самостоятельных исследователей, которые ведут заметки, источники и учебные планы в Obsidian. Плагин превращает учебную сессию в небольшой ритуал: выбрать намерение, убрать шум интерфейса, держать перед глазами таймер, а в конце зафиксировать рефлексию. Цель — не только считать время, но и формировать привычку к осознанной концентрации.
+
+### Возможности
+
+- Запуск структурированных учебных сессий из Obsidian.
+- Режимы: дзен-сессия, Помодоро, учебный спринт и глубокая учёба.
+- Снижение отвлечений через Focus Shield и опциональное приглушение уведомлений Obsidian.
+- Отдельный экран фокуса с визуальным прогрессом, активной целью, обратным отсчётом фазы Помодоро и быстрыми кнопками управления.
+- Восстановление незавершённой активной сессии после перезапуска Obsidian.
+- Учёт времени в фокусе, процента завершения, прерываний, серии дней, дневного фокуса, оценок внимания, лучшего окна фокуса и последних сессий.
+- Локальные рекомендации на основе истории сессий и паттернов работы.
+- Опциональный запуск локальных desktop-команд при старте и завершении сессии.
+
+### Быстрый старт
+
+Используйте палитру команд:
+
+- `Study Zen: Start session / Начать сессию` — выбрать режим, цель, результат и длительность.
+- `Study Zen: Stop session / Завершить сессию` — завершить сессию и сохранить рефлексию.
+- `Study Zen: Pause session / Поставить на паузу` — поставить активный таймер на паузу.
+- `Study Zen: Resume session / Продолжить сессию` — продолжить активный таймер.
+- `Study Zen: Open focus view / Открыть экран фокуса` — открыть визуальный экран фокуса.
+- `Study Zen: Open stats / Открыть статистику` — посмотреть статистику и рекомендации.
+
+### Установка
+
+1. Скачайте последний `study-zen-<version>.zip` из GitHub Releases.
+2. Распакуйте его в `.obsidian/plugins/study-zen/` внутри вашего vault.
+3. Включите Study Zen в настройках Obsidian.
+
+### Приватность
+
+- История сессий, настройки и данные восстановления активной сессии остаются в данных плагина Obsidian.
+- Облачная синхронизация и внешняя аналитика не используются.
+- Команды System Focus выполняются локально только после явного включения.
 
 ## Development
 

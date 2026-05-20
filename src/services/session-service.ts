@@ -1,5 +1,6 @@
 import { Notice } from "obsidian";
 import { createActiveSession, createInterruptedSessionRecord, createSessionRecord } from "../domain/session-records";
+import { bi } from "../i18n";
 import { ActiveSession, EndSessionInput, StartSessionInput, StudySessionRecord, StudyZenSettings } from "../types";
 import { FocusShieldService } from "./focus-shield-service";
 import { SystemFocusService } from "./system-focus-service";
@@ -16,7 +17,8 @@ export class SessionService {
     private readonly systemFocus: SystemFocusService,
     private readonly getSettings: () => StudyZenSettings,
     private readonly onTick: (event: TimerEvent) => void,
-    private readonly onSessionSaved: (record: StudySessionRecord) => Promise<void>
+    private readonly onSessionSaved: (record: StudySessionRecord) => Promise<void>,
+    private readonly onActiveSessionChanged: (session: ActiveSession | null) => void = () => undefined
   ) {}
 
   getActiveSession(): ActiveSession | null {
@@ -25,39 +27,79 @@ export class SessionService {
 
   async start(input: StartSessionInput): Promise<boolean> {
     if (this.activeSession) {
-      new Notice("Study Zen is already active.");
+      new Notice(bi("Study Zen is already active.", "Study Zen уже активен."));
       return false;
     }
 
     const settings = this.getSettings();
     const token = ++this.lifecycleToken;
     const session = createActiveSession(input, Date.now(), crypto.randomUUID());
-    this.activeSession = session;
+    this.setActiveSession(session);
 
     this.focusShield.apply(settings.focusShield);
     await this.systemFocus.runStart(settings.systemFocus);
     if (this.lifecycleToken !== token || this.activeSession !== session) {
+      if (this.activeSession === session) this.setActiveSession(null);
       await this.systemFocus.runEnd(settings.systemFocus);
       return false;
     }
     this.timer.start(() => this.activeSession, this.getSettings, this.onTick);
-    new Notice("Study Zen session started.");
+    new Notice(bi("Study Zen session started.", "Сессия Study Zen началась."));
+    return true;
+  }
+
+  async restore(session: ActiveSession): Promise<boolean> {
+    if (this.activeSession) {
+      new Notice(bi("Study Zen is already active.", "Study Zen уже активен."));
+      return false;
+    }
+
+    const settings = this.getSettings();
+    const token = ++this.lifecycleToken;
+    const restoredSession: ActiveSession = { ...session, paused: false };
+    this.setActiveSession(restoredSession);
+
+    this.focusShield.apply(settings.focusShield);
+    await this.systemFocus.runStart(settings.systemFocus);
+    if (this.lifecycleToken !== token || this.activeSession !== restoredSession) {
+      if (this.activeSession === restoredSession) this.setActiveSession(null);
+      await this.systemFocus.runEnd(settings.systemFocus);
+      return false;
+    }
+
+    this.timer.start(() => this.activeSession, this.getSettings, this.onTick);
+    new Notice(bi("Study Zen session restored.", "Сессия Study Zen восстановлена."));
     return true;
   }
 
   pause(): void {
-    if (this.activeSession) this.activeSession.paused = true;
+    if (this.activeSession) {
+      this.activeSession.paused = true;
+      this.onActiveSessionChanged(this.activeSession);
+    }
   }
 
   resume(): void {
-    if (this.activeSession) this.activeSession.paused = false;
+    if (this.activeSession) {
+      this.activeSession.paused = false;
+      this.onActiveSessionChanged(this.activeSession);
+    }
+  }
+
+  skipPomodoroBreak(): boolean {
+    if (!this.activeSession || this.activeSession.mode !== "pomodoro" || this.activeSession.pomodoroPhase !== "break") return false;
+
+    this.activeSession.pomodoroPhase = "focus";
+    this.activeSession.phaseStartedAtSeconds = this.activeSession.elapsedSeconds;
+    this.onActiveSessionChanged(this.activeSession);
+    return true;
   }
 
   async stop(input: EndSessionInput): Promise<StudySessionRecord | null> {
     if (this.stopInFlight) return this.stopInFlight;
 
     if (!this.activeSession) {
-      new Notice("No Study Zen session is active.");
+      new Notice(bi("No Study Zen session is active.", "Нет активной сессии Study Zen."));
       return null;
     }
 
@@ -86,8 +128,8 @@ export class SessionService {
       await this.onSessionSaved(record);
     } catch (error) {
       console.error("Study Zen failed to save session", error);
-      new Notice("Study Zen could not save the session. Please try stopping again.");
-      this.activeSession = session;
+      new Notice(bi("Study Zen could not save the session. Please try stopping again.", "Study Zen не смог сохранить сессию. Попробуйте завершить её ещё раз."));
+      this.setActiveSession(session);
       const settings = this.getSettings();
       try {
         this.focusShield.apply(settings.focusShield);
@@ -103,9 +145,33 @@ export class SessionService {
       return null;
     }
 
-    if (this.activeSession === session) this.activeSession = null;
-    new Notice("Study Zen session saved.");
+    if (this.activeSession === session) this.setActiveSession(null);
+    new Notice(bi("Study Zen session saved.", "Сессия Study Zen сохранена."));
     return record;
+  }
+
+  async suspendForRecovery(): Promise<ActiveSession | null> {
+    this.lifecycleToken += 1;
+    const session = this.activeSession;
+    this.timer.stop();
+
+    try {
+      this.focusShield.restore();
+    } catch (error) {
+      console.error("Study Zen failed to restore Focus Shield during suspend", error);
+    }
+
+    if (session) {
+      session.paused = true;
+      try {
+        await this.systemFocus.runEnd(this.getSettings().systemFocus);
+      } catch (error) {
+        console.error("Study Zen failed to end system focus during suspend", error);
+      }
+    }
+
+    this.activeSession = null;
+    return session ? { ...session } : null;
   }
 
   async unload(): Promise<void> {
@@ -137,6 +203,11 @@ export class SessionService {
       }
     }
 
-    this.activeSession = null;
+    this.setActiveSession(null);
+  }
+
+  private setActiveSession(session: ActiveSession | null): void {
+    this.activeSession = session;
+    this.onActiveSessionChanged(session);
   }
 }

@@ -8,14 +8,17 @@ import { SystemFocusService } from "./services/system-focus-service";
 import { TimerEvent, TimerService } from "./services/timer-service";
 import { EndSessionModal } from "./ui/end-session-modal";
 import { FocusView } from "./ui/focus-view";
+import { RecoveryModal } from "./ui/recovery-modal";
 import { StartSessionModal } from "./ui/start-session-modal";
 import { StatsView } from "./ui/stats-view";
 import { StudyZenSettingTab } from "./ui/settings-tab";
-import { DEFAULT_SETTINGS, StudySessionRecord, StudyZenData, StudyZenSettings, VIEW_TYPE_STUDY_ZEN_FOCUS, VIEW_TYPE_STUDY_ZEN_STATS } from "./types";
+import { bi } from "./i18n";
+import { ActiveSession, DEFAULT_SETTINGS, StudySessionRecord, StudyZenData, StudyZenSettings, VIEW_TYPE_STUDY_ZEN_FOCUS, VIEW_TYPE_STUDY_ZEN_STATS } from "./types";
 
 export default class StudyZenPlugin extends Plugin {
   settings: StudyZenSettings = DEFAULT_SETTINGS;
   sessions: StudySessionRecord[] = [];
+  activeSession: ActiveSession | null = null;
   systemFocusService = new SystemFocusService();
 
   private timerService = new TimerService();
@@ -24,6 +27,7 @@ export default class StudyZenPlugin extends Plugin {
   private sessionService!: SessionService;
   private statusBarItem: HTMLElement | null = null;
   private endSessionModalOpen = false;
+  private activeSessionLastSavedAt = 0;
 
   async onload(): Promise<void> {
     await this.loadPluginData();
@@ -34,44 +38,45 @@ export default class StudyZenPlugin extends Plugin {
       this.systemFocusService,
       () => this.settings,
       (event) => this.handleTimerTick(event),
-      async (record) => this.saveSession(record)
+      async (record) => this.saveSession(record),
+      (session) => this.handleActiveSessionChanged(session)
     );
 
     this.statusBarItem = this.addStatusBarItem();
     this.statusBarItem.addClass("study-zen-status");
     this.updateStatusBar();
 
-    this.addRibbonIcon("timer", "Start Study Zen", () => this.openStartSessionModal());
+    this.addRibbonIcon("timer", bi("Start Study Zen", "Начать Study Zen"), () => this.openStartSessionModal());
     this.addCommand({
       id: "start-study-zen-session",
-      name: "Start session",
+      name: bi("Start session", "Начать сессию"),
       callback: () => this.openStartSessionModal()
     });
     this.addCommand({
       id: "stop-study-zen-session",
-      name: "Stop session",
+      name: bi("Stop session", "Завершить сессию"),
       callback: () => this.openEndSessionModal()
     });
     this.addCommand({
       id: "pause-study-zen-session",
-      name: "Pause session",
+      name: bi("Pause session", "Поставить на паузу"),
       callback: () => this.pauseSession()
     });
     this.addCommand({
       id: "resume-study-zen-session",
-      name: "Resume session",
+      name: bi("Resume session", "Продолжить сессию"),
       callback: () => this.resumeSession()
     });
     this.addCommand({
       id: "open-study-zen-stats",
-      name: "Open stats",
+      name: bi("Open stats", "Открыть статистику"),
       callback: () => {
         void this.openStatsView();
       }
     });
     this.addCommand({
       id: "open-study-zen-focus",
-      name: "Open focus view",
+      name: bi("Open focus view", "Открыть экран фокуса"),
       callback: () => {
         void this.openFocusView();
       }
@@ -84,6 +89,7 @@ export default class StudyZenPlugin extends Plugin {
           start: () => this.openStartSessionModal(),
           pause: () => this.pauseSession(),
           resume: () => this.resumeSession(),
+          skipBreak: () => this.skipPomodoroBreak(),
           stop: () => this.openEndSessionModal(),
           openStats: () => {
             void this.openStatsView();
@@ -92,10 +98,20 @@ export default class StudyZenPlugin extends Plugin {
     );
     this.registerView(VIEW_TYPE_STUDY_ZEN_STATS, (leaf) => new StatsView(leaf, () => this.sessions, this.statsService));
     this.addSettingTab(new StudyZenSettingTab(this.app, this));
+
+    this.openRecoveryModalIfNeeded();
   }
 
   async onunload(): Promise<void> {
-    await this.sessionService?.unload();
+    const suspendedSession = await this.sessionService?.suspendForRecovery();
+    if (suspendedSession) {
+      this.activeSession = suspendedSession;
+      try {
+        await this.savePluginData();
+      } catch (error) {
+        console.error("Study Zen failed to save active session during unload", error);
+      }
+    }
   }
 
   async loadPluginData(): Promise<void> {
@@ -110,12 +126,14 @@ export default class StudyZenPlugin extends Plugin {
     const data = mergeStudyZenData(stored);
     this.settings = data.settings;
     this.sessions = data.sessions;
+    this.activeSession = data.activeSession;
   }
 
   async savePluginData(): Promise<void> {
     await this.saveData({
       settings: this.settings,
-      sessions: this.sessions
+      sessions: this.sessions,
+      activeSession: this.activeSession
     } satisfies StudyZenData);
   }
 
@@ -133,13 +151,14 @@ export default class StudyZenPlugin extends Plugin {
 
   private openEndSessionModal(): void {
     if (!this.sessionService.getActiveSession()) {
-      new Notice("No Study Zen session is active.");
+      new Notice(bi("No Study Zen session is active.", "Нет активной сессии Study Zen."));
       return;
     }
 
     if (this.endSessionModalOpen) return;
 
-    const modal = new EndSessionModal(this.app, false, async (input) => {
+    const session = this.sessionService.getActiveSession();
+    const modal = new EndSessionModal(this.app, false, session, (seconds) => this.timerService.format(seconds), async (input) => {
       const record = await this.sessionService.stop(input);
       if (record) {
         this.updateStatusBar();
@@ -160,27 +179,38 @@ export default class StudyZenPlugin extends Plugin {
   private pauseSession(): void {
     const session = this.sessionService.getActiveSession();
     if (!session) {
-      new Notice("No Study Zen session is active.");
+      new Notice(bi("No Study Zen session is active.", "Нет активной сессии Study Zen."));
       return;
     }
 
     this.sessionService.pause();
     this.updateStatusBar();
     this.refreshFocusViews();
-    new Notice("Study Zen session paused.");
+    new Notice(bi("Study Zen session paused.", "Сессия Study Zen на паузе."));
   }
 
   private resumeSession(): void {
     const session = this.sessionService.getActiveSession();
     if (!session) {
-      new Notice("No Study Zen session is active.");
+      new Notice(bi("No Study Zen session is active.", "Нет активной сессии Study Zen."));
       return;
     }
 
     this.sessionService.resume();
     this.updateStatusBar();
     this.refreshFocusViews();
-    new Notice("Study Zen session resumed.");
+    new Notice(bi("Study Zen session resumed.", "Сессия Study Zen продолжена."));
+  }
+
+  private skipPomodoroBreak(): void {
+    if (!this.sessionService.skipPomodoroBreak()) {
+      new Notice(bi("There is no Pomodoro break to skip.", "Сейчас нет перерыва Помодоро, который можно пропустить."));
+      return;
+    }
+
+    this.updateStatusBar();
+    this.refreshFocusViews();
+    new Notice(bi("Break skipped. Back to focus.", "Перерыв пропущен. Возвращаемся к фокусу."));
   }
 
   private async openFocusView(): Promise<void> {
@@ -208,6 +238,8 @@ export default class StudyZenPlugin extends Plugin {
   }
 
   private handleTimerTick(event: TimerEvent): void {
+    this.activeSession = { ...event.session };
+    this.saveActiveSessionSnapshot(false);
     this.updateStatusBar(event);
     this.refreshFocusViews();
     if (event.message) new Notice(event.message);
@@ -247,5 +279,45 @@ export default class StudyZenPlugin extends Plugin {
     for (const leaf of this.app.workspace.getLeavesOfType(VIEW_TYPE_STUDY_ZEN_FOCUS)) {
       if (leaf.view instanceof FocusView) leaf.view.render();
     }
+  }
+
+  private handleActiveSessionChanged(session: ActiveSession | null): void {
+    this.activeSession = session ? { ...session } : null;
+    this.activeSessionLastSavedAt = 0;
+    this.saveActiveSessionSnapshot(true);
+  }
+
+  private saveActiveSessionSnapshot(force: boolean): void {
+    const now = Date.now();
+    if (!force && now - this.activeSessionLastSavedAt < 15000) return;
+
+    this.activeSessionLastSavedAt = now;
+    void this.savePluginData();
+  }
+
+  private openRecoveryModalIfNeeded(): void {
+    if (!this.activeSession) return;
+
+    const recoveredSession = { ...this.activeSession };
+    new RecoveryModal(this.app, recoveredSession, (seconds) => this.timerService.format(seconds), {
+      resume: async (session) => {
+        const restored = await this.sessionService.restore(session);
+        if (restored) {
+          await this.openFocusView();
+          this.refreshFocusViews();
+        }
+        return restored;
+      },
+      saveInterrupted: async (record) => {
+        this.activeSession = null;
+        await this.saveSession(record);
+      },
+      discard: async () => {
+        this.activeSession = null;
+        await this.savePluginData();
+        this.refreshFocusViews();
+        this.updateStatusBar();
+      }
+    }).open();
   }
 }

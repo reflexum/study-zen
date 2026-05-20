@@ -150,9 +150,19 @@ body.study-zen-calm-editor .workspace-leaf.mod-active .view-content {
   color: var(--text-muted);
 }
 
+.study-zen-end-summary,
+.study-zen-recovery-summary {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 12px 0;
+  background: var(--background-secondary);
+  line-height: 1.45;
+}
+
 .study-zen-focus-metrics {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 10px;
   margin: 22px 0;
 }

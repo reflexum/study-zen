@@ -1,4 +1,5 @@
 import { Notice, Platform } from "obsidian";
+import { bi } from "../i18n";
 import { SystemFocusSettings } from "../types";
 
 export class SystemFocusService {
@@ -12,27 +13,27 @@ export class SystemFocusService {
 
   async test(command: string): Promise<void> {
     if (!command.trim()) {
-      new Notice("Study Zen system focus test command is empty.");
+      new Notice(bi("Study Zen system focus test command is empty.", "Тестовая команда системного фокуса Study Zen пустая."));
       return;
     }
     if (!Platform.isDesktopApp) {
-      new Notice("Study Zen system focus commands are desktop-only.");
+      new Notice(bi("Study Zen system focus commands are desktop-only.", "Команды системного фокуса Study Zen доступны только в desktop-версии."));
       return;
     }
 
     try {
       await this.execCommand(command);
-      new Notice("Study Zen system focus test command completed.");
+      new Notice(bi("Study Zen system focus test command completed.", "Тестовая команда системного фокуса Study Zen выполнена."));
     } catch (error) {
       console.error("Study Zen system focus test command failed", error);
-      new Notice("Study Zen system focus test command failed. Check the command and try again.");
+      new Notice(bi("Study Zen system focus test command failed. Check the command and try again.", "Тестовая команда системного фокуса Study Zen не выполнена. Проверьте команду и попробуйте снова."));
     }
   }
 
   private async runCommand(settings: SystemFocusSettings, command: string, label: string): Promise<void> {
     if (!settings.enabled || !command.trim()) return;
     if (!Platform.isDesktopApp) {
-      new Notice("Study Zen system focus commands are desktop-only.");
+      new Notice(bi("Study Zen system focus commands are desktop-only.", "Команды системного фокуса Study Zen доступны только в desktop-версии."));
       return;
     }
 
@@ -40,7 +41,7 @@ export class SystemFocusService {
       await this.execCommand(command);
     } catch (error) {
       console.error(`Study Zen system focus ${label} command failed`, error);
-      new Notice(`Study Zen system focus ${label} command failed. Session will continue.`);
+      new Notice(bi(`Study Zen system focus ${label} command failed. Session will continue.`, `Команда системного фокуса Study Zen (${label}) не выполнена. Сессия продолжится.`));
     }
   }
 

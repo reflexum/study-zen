@@ -44,13 +44,13 @@ describe("TimerService", () => {
     expect(activeSession.elapsedSeconds).toBe(1500);
     expect(activeSession.focusedSeconds).toBe(1500);
     expect(activeSession.pomodoroPhase).toBe("break");
-    expect(messages).toContain("Focus round complete. Take a short break.");
+    expect(messages).toContain("Focus round complete. Take a short break. / Фокус-раунд завершён. Сделайте короткий перерыв.");
 
     vi.advanceTimersByTime(DEFAULT_SETTINGS.pomodoroBreakMinutes * 60 * 1000);
     expect(activeSession.elapsedSeconds).toBe(1800);
     expect(activeSession.focusedSeconds).toBe(1500);
     expect(activeSession.pomodoroPhase).toBe("focus");
-    expect(messages).toContain("Break complete. Start the next focus round.");
+    expect(messages).toContain("Break complete. Start the next focus round. / Перерыв завершён. Начните следующий фокус-раунд.");
 
     service.stop();
   });
@@ -96,7 +96,7 @@ describe("TimerService", () => {
 
     vi.advanceTimersByTime(61 * 1000);
 
-    expect(messages).toEqual(["Planned focus time complete. Finish the session or continue intentionally."]);
+    expect(messages).toEqual(["Planned focus time complete. Finish the session or continue intentionally. / Плановое время фокуса завершено. Завершите сессию или осознанно продолжайте."]);
     expect(activeSession.plannedCompletionNotified).toBe(true);
 
     service.stop();

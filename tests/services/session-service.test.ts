@@ -19,9 +19,12 @@ function makeHarness(onSessionSaved: (record: StudySessionRecord) => Promise<voi
     runEnd: vi.fn(async () => undefined)
   } as unknown as SystemFocusService;
   const onTick = vi.fn(() => undefined);
-  const service = new SessionService(timer, focusShield, systemFocus, () => DEFAULT_SETTINGS, onTick, onSessionSaved);
+  const activeChanges: Array<unknown> = [];
+  const service = new SessionService(timer, focusShield, systemFocus, () => DEFAULT_SETTINGS, onTick, onSessionSaved, (session) => {
+    activeChanges.push(session ? { ...session } : null);
+  });
 
-  return { service, timer, focusShield, systemFocus };
+  return { service, timer, focusShield, systemFocus, activeChanges };
 }
 
 describe("SessionService", () => {
@@ -94,5 +97,67 @@ describe("SessionService", () => {
     expect(timer.stop).toHaveBeenCalled();
     expect(focusShield.restore).toHaveBeenCalled();
     expect(systemFocus.runEnd).toHaveBeenCalled();
+  });
+
+  it("restores a persisted active session", async () => {
+    const { service, timer, focusShield, systemFocus, activeChanges } = makeHarness();
+    const restoredSession = {
+      id: "session-restored",
+      mode: "zen" as const,
+      goal: "Read",
+      expectedResult: "Notes",
+      startedAt: Date.now(),
+      plannedMinutes: 45,
+      elapsedSeconds: 120,
+      focusedSeconds: 100,
+      paused: true,
+      pomodoroCyclesCompleted: 0,
+      lastCheckpointSeconds: 0,
+      plannedCompletionNotified: false
+    };
+
+    await expect(service.restore(restoredSession)).resolves.toBe(true);
+
+    expect(service.getActiveSession()).toMatchObject({ id: "session-restored", paused: false, focusedSeconds: 100 });
+    expect(focusShield.apply).toHaveBeenCalledTimes(1);
+    expect(systemFocus.runStart).toHaveBeenCalledTimes(1);
+    expect(timer.start).toHaveBeenCalledTimes(1);
+    expect(activeChanges[activeChanges.length - 1]).toMatchObject({ id: "session-restored", paused: false });
+  });
+
+  it("suspends an active session for recovery without saving an interrupted record", async () => {
+    const saved: StudySessionRecord[] = [];
+    const { service, timer, focusShield, systemFocus } = makeHarness(async (record) => {
+      saved.push(record);
+    });
+
+    await service.start({ mode: "deep", goal: "Study", expectedResult: "Summary", plannedMinutes: 90 });
+    const activeSession = service.getActiveSession();
+    expect(activeSession).not.toBeNull();
+    activeSession!.focusedSeconds = 600;
+
+    const suspended = await service.suspendForRecovery();
+
+    expect(suspended).toMatchObject({ mode: "deep", focusedSeconds: 600, paused: true });
+    expect(service.getActiveSession()).toBeNull();
+    expect(saved).toEqual([]);
+    expect(timer.stop).toHaveBeenCalled();
+    expect(focusShield.restore).toHaveBeenCalled();
+    expect(systemFocus.runEnd).toHaveBeenCalled();
+  });
+
+  it("skips Pomodoro breaks back into focus", async () => {
+    const { service } = makeHarness();
+
+    await service.start({ mode: "pomodoro", goal: "Study", expectedResult: "Notes", plannedMinutes: 25 });
+    const activeSession = service.getActiveSession();
+    expect(activeSession).not.toBeNull();
+    activeSession!.elapsedSeconds = 1500;
+    activeSession!.pomodoroPhase = "break";
+    activeSession!.phaseStartedAtSeconds = 1500;
+
+    expect(service.skipPomodoroBreak()).toBe(true);
+
+    expect(activeSession).toMatchObject({ pomodoroPhase: "focus", phaseStartedAtSeconds: 1500 });
   });
 });

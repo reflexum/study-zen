@@ -23,16 +23,16 @@ function session(overrides: Partial<ActiveSession>): ActiveSession {
 
 describe("status text business logic", () => {
   it("formats idle status", () => {
-    expect(formatStatusText(null, format)).toBe("Study Zen idle");
+    expect(formatStatusText(null, format)).toBe("Study Zen idle / Study Zen ждёт");
   });
 
   it("formats regular study mode status", () => {
-    expect(formatStatusText(session({ mode: "deep", focusedSeconds: 120 }), format)).toBe("Study Zen: Deep Study 120s");
+    expect(formatStatusText(session({ mode: "deep", focusedSeconds: 120 }), format)).toBe("Study Zen: Deep Study / Глубокая учёба 120s");
   });
 
   it("formats Pomodoro phase status with elapsed and focused time", () => {
     expect(formatStatusText(session({ mode: "pomodoro", pomodoroPhase: "break", elapsedSeconds: 1800, focusedSeconds: 1500, paused: true }), format)).toBe(
-      "Study Zen: Pomodoro (break) paused elapsed 1800s · focus 1500s"
+      "Study Zen: Pomodoro / Помодоро (break / перерыв) paused / пауза · elapsed / прошло 1800s · focus / фокус 1500s"
     );
   });
 });
