@@ -2,13 +2,18 @@
 
 Obsidian plugin for focused study sessions, quiet mode, timers, and local study statistics.
 
+## Product Scenario
+
+Study Zen is designed for students and independent researchers who keep notes, sources, and study plans in Obsidian. The plugin turns a study session into a small ritual: choose an intention, reduce workspace noise, keep a visible timer, then finish with a reflection. The goal is not only to measure time, but to build a habit of deliberate concentration.
+
 ## Features
 
 - Start structured study sessions from Obsidian.
 - Choose between Zen Session, Pomodoro, Study Sprint, and Deep Study modes.
-- Reduce distractions with Focus Shield UI styling.
-- Track focus time, completion rate, streaks, daily focus, and recent sessions.
-- Get lightweight local recommendations based on session history.
+- Reduce distractions with Focus Shield UI styling and optional muted Obsidian notices.
+- Use a dedicated Focus view with a visual progress timer, active goal, session phase, and quick pause/resume/finish controls.
+- Track focus time, completion rate, interruption rate, streaks, daily focus, focus ratings, best focus window, and recent sessions.
+- Get lightweight local recommendations based on session history and work patterns.
 - Optionally run desktop system focus commands when sessions start and end.
 
 ## Installation
@@ -33,6 +38,7 @@ Use the command palette:
 - `Study Zen: Stop session` - finish the session and save reflection.
 - `Study Zen: Pause session` - pause the active timer.
 - `Study Zen: Resume session` - resume the active timer.
+- `Study Zen: Open focus view` - open the visual focus dashboard.
 - `Study Zen: Open stats` - view focus statistics and recommendations.
 
 ## Study Modes
@@ -56,6 +62,7 @@ Use the command palette:
 - Hide ribbon.
 - Dim sidebars.
 - Hide status bar.
+- Mute Obsidian notices.
 - Add calmer editor styling.
 
 ### System Focus

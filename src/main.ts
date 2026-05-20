@@ -7,10 +7,11 @@ import { StatsService } from "./services/stats-service";
 import { SystemFocusService } from "./services/system-focus-service";
 import { TimerEvent, TimerService } from "./services/timer-service";
 import { EndSessionModal } from "./ui/end-session-modal";
+import { FocusView } from "./ui/focus-view";
 import { StartSessionModal } from "./ui/start-session-modal";
 import { StatsView } from "./ui/stats-view";
 import { StudyZenSettingTab } from "./ui/settings-tab";
-import { DEFAULT_SETTINGS, StudySessionRecord, StudyZenData, StudyZenSettings, VIEW_TYPE_STUDY_ZEN_STATS } from "./types";
+import { DEFAULT_SETTINGS, StudySessionRecord, StudyZenData, StudyZenSettings, VIEW_TYPE_STUDY_ZEN_FOCUS, VIEW_TYPE_STUDY_ZEN_STATS } from "./types";
 
 export default class StudyZenPlugin extends Plugin {
   settings: StudyZenSettings = DEFAULT_SETTINGS;
@@ -68,7 +69,27 @@ export default class StudyZenPlugin extends Plugin {
         void this.openStatsView();
       }
     });
+    this.addCommand({
+      id: "open-study-zen-focus",
+      name: "Open focus view",
+      callback: () => {
+        void this.openFocusView();
+      }
+    });
 
+    this.registerView(
+      VIEW_TYPE_STUDY_ZEN_FOCUS,
+      (leaf) =>
+        new FocusView(leaf, () => this.sessionService.getActiveSession(), () => this.settings, (seconds) => this.timerService.format(seconds), {
+          start: () => this.openStartSessionModal(),
+          pause: () => this.pauseSession(),
+          resume: () => this.resumeSession(),
+          stop: () => this.openEndSessionModal(),
+          openStats: () => {
+            void this.openStatsView();
+          }
+        })
+    );
     this.registerView(VIEW_TYPE_STUDY_ZEN_STATS, (leaf) => new StatsView(leaf, () => this.sessions, this.statsService));
     this.addSettingTab(new StudyZenSettingTab(this.app, this));
   }
@@ -101,7 +122,12 @@ export default class StudyZenPlugin extends Plugin {
   private openStartSessionModal(): void {
     new StartSessionModal(this.app, this.settings, async (input) => {
       const started = await this.sessionService.start(input);
-      if (started) this.statusBarItem?.setText("Study Zen starting...");
+      if (started) {
+        this.statusBarItem?.setText("Study Zen starting...");
+        await this.openFocusView();
+        this.refreshFocusViews();
+      }
+      return started;
     }).open();
   }
 
@@ -115,6 +141,10 @@ export default class StudyZenPlugin extends Plugin {
 
     const modal = new EndSessionModal(this.app, false, async (input) => {
       const record = await this.sessionService.stop(input);
+      if (record) {
+        this.updateStatusBar();
+        this.refreshFocusViews();
+      }
       return record !== null;
     });
     const originalOnClose = modal.onClose.bind(modal);
@@ -136,6 +166,7 @@ export default class StudyZenPlugin extends Plugin {
 
     this.sessionService.pause();
     this.updateStatusBar();
+    this.refreshFocusViews();
     new Notice("Study Zen session paused.");
   }
 
@@ -148,7 +179,20 @@ export default class StudyZenPlugin extends Plugin {
 
     this.sessionService.resume();
     this.updateStatusBar();
+    this.refreshFocusViews();
     new Notice("Study Zen session resumed.");
+  }
+
+  private async openFocusView(): Promise<void> {
+    const existingLeaf = this.app.workspace.getLeavesOfType(VIEW_TYPE_STUDY_ZEN_FOCUS)[0];
+    if (existingLeaf) {
+      await this.app.workspace.revealLeaf(existingLeaf);
+      return;
+    }
+
+    const leaf = this.app.workspace.getRightLeaf(false) ?? this.app.workspace.getLeaf(true);
+    await leaf.setViewState({ type: VIEW_TYPE_STUDY_ZEN_FOCUS, active: true });
+    await this.app.workspace.revealLeaf(leaf);
   }
 
   private async openStatsView(): Promise<void> {
@@ -165,6 +209,7 @@ export default class StudyZenPlugin extends Plugin {
 
   private handleTimerTick(event: TimerEvent): void {
     this.updateStatusBar(event);
+    this.refreshFocusViews();
     if (event.message) new Notice(event.message);
   }
 
@@ -195,6 +240,12 @@ export default class StudyZenPlugin extends Plugin {
   private refreshStatsViews(): void {
     for (const leaf of this.app.workspace.getLeavesOfType(VIEW_TYPE_STUDY_ZEN_STATS)) {
       if (leaf.view instanceof StatsView) leaf.view.render();
+    }
+  }
+
+  private refreshFocusViews(): void {
+    for (const leaf of this.app.workspace.getLeavesOfType(VIEW_TYPE_STUDY_ZEN_FOCUS)) {
+      if (leaf.view instanceof FocusView) leaf.view.render();
     }
   }
 }

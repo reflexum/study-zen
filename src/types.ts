@@ -8,6 +8,7 @@ export interface FocusShieldSettings {
   hideRibbon: boolean;
   dimSidebars: boolean;
   hideStatusBar: boolean;
+  hideNotifications: boolean;
   calmEditor: boolean;
 }
 
@@ -66,6 +67,7 @@ export interface ActiveSession {
   phaseStartedAtSeconds?: number;
   pomodoroCyclesCompleted: number;
   lastCheckpointSeconds: number;
+  plannedCompletionNotified: boolean;
 }
 
 export interface StudyZenData {
@@ -100,6 +102,7 @@ export const DEFAULT_SETTINGS: StudyZenSettings = {
     hideRibbon: true,
     dimSidebars: true,
     hideStatusBar: false,
+    hideNotifications: true,
     calmEditor: true
   },
   systemFocus: {
@@ -111,6 +114,7 @@ export const DEFAULT_SETTINGS: StudyZenSettings = {
 };
 
 export const VIEW_TYPE_STUDY_ZEN_STATS = "study-zen-stats";
+export const VIEW_TYPE_STUDY_ZEN_FOCUS = "study-zen-focus";
 
 export function modeLabel(mode: StudyMode): string {
   switch (mode) {

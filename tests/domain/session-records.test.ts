@@ -26,7 +26,8 @@ describe("session record business logic", () => {
       pomodoroPhase: "focus",
       phaseStartedAtSeconds: 0,
       pomodoroCyclesCompleted: 0,
-      lastCheckpointSeconds: 0
+      lastCheckpointSeconds: 0,
+      plannedCompletionNotified: false
     });
   });
 

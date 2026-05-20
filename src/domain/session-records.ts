@@ -14,7 +14,8 @@ export function createActiveSession(input: StartSessionInput, startedAt: number,
     pomodoroPhase: input.mode === "pomodoro" ? "focus" : undefined,
     phaseStartedAtSeconds: input.mode === "pomodoro" ? 0 : undefined,
     pomodoroCyclesCompleted: 0,
-    lastCheckpointSeconds: 0
+    lastCheckpointSeconds: 0,
+    plannedCompletionNotified: false
   };
 }
 

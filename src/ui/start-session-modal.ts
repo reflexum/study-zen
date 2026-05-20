@@ -7,8 +7,9 @@ export class StartSessionModal extends Modal {
   private goal = "";
   private expectedResult = "";
   private plannedMinutesValue: string;
+  private starting = false;
 
-  constructor(app: App, private readonly settings: StudyZenSettings, private readonly onSubmit: (input: StartSessionInput) => void) {
+  constructor(app: App, private readonly settings: StudyZenSettings, private readonly onSubmit: (input: StartSessionInput) => Promise<boolean> | boolean) {
     super(app);
     this.mode = settings.defaultMode;
     this.plannedMinutesValue = String(getDefaultPlannedMinutes(this.mode, this.settings));
@@ -53,7 +54,8 @@ export class StartSessionModal extends Modal {
       button
         .setButtonText("Start")
         .setCta()
-        .onClick(() => {
+        .onClick(async () => {
+          if (this.starting) return;
           if (!this.goal.trim()) {
             new Notice("Add a Study Zen goal before starting.");
             return;
@@ -65,8 +67,24 @@ export class StartSessionModal extends Modal {
             return;
           }
 
-          this.onSubmit({ mode: this.mode, goal: this.goal, expectedResult: this.expectedResult, plannedMinutes });
-          this.close();
+          this.starting = true;
+          button.setDisabled(true).setButtonText("Starting...");
+
+          let started = false;
+          try {
+            started = await this.onSubmit({ mode: this.mode, goal: this.goal, expectedResult: this.expectedResult, plannedMinutes });
+          } catch (error) {
+            console.error("Study Zen failed to start session", error);
+            new Notice("Study Zen could not start the session. Please try again.");
+          }
+
+          this.starting = false;
+          if (started) {
+            this.close();
+            return;
+          }
+
+          button.setDisabled(false).setButtonText("Start");
         });
     });
   }

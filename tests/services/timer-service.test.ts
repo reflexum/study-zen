@@ -16,7 +16,8 @@ function pomodoroSession(): ActiveSession {
     pomodoroPhase: "focus",
     phaseStartedAtSeconds: 0,
     pomodoroCyclesCompleted: 0,
-    lastCheckpointSeconds: 0
+    lastCheckpointSeconds: 0,
+    plannedCompletionNotified: false
   };
 }
 
@@ -69,6 +70,34 @@ describe("TimerService", () => {
 
     expect(activeSession.pomodoroPhase).toBe("break");
     expect(activeSession.focusedSeconds).toBe(1500);
+
+    service.stop();
+  });
+
+  it("notifies once when planned focus time is complete", () => {
+    vi.useFakeTimers();
+    const service = new TimerService();
+    const activeSession = {
+      ...pomodoroSession(),
+      mode: "sprint" as const,
+      plannedMinutes: 1,
+      pomodoroPhase: undefined,
+      phaseStartedAtSeconds: undefined
+    };
+    const messages: string[] = [];
+
+    service.start(
+      () => activeSession,
+      () => DEFAULT_SETTINGS,
+      (event) => {
+        if (event.message) messages.push(event.message);
+      }
+    );
+
+    vi.advanceTimersByTime(61 * 1000);
+
+    expect(messages).toEqual(["Planned focus time complete. Finish the session or continue intentionally."]);
+    expect(activeSession.plannedCompletionNotified).toBe(true);
 
     service.stop();
   });

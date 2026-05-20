@@ -16,6 +16,7 @@ function session(overrides: Partial<ActiveSession>): ActiveSession {
     paused: false,
     pomodoroCyclesCompleted: 0,
     lastCheckpointSeconds: 0,
+    plannedCompletionNotified: false,
     ...overrides
   };
 }
