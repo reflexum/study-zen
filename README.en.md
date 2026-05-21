@@ -33,11 +33,19 @@ Use the command palette:
 
 Change the interface language in Study Zen settings. After switching, views, modals, notices, statistics, and recommendations use the selected language.
 
+## Documentation
+
+- User documentation: this README and the [Russian version](README.md).
+- Developer documentation: [docs/DEVELOPMENT.en.md](docs/DEVELOPMENT.en.md).
+- Project review and install-without-building guide: [docs/REVIEWER.en.md](docs/REVIEWER.en.md).
+
 ## Installation
 
 1. Download the latest `study-zen-<version>.zip` from GitHub Releases.
 2. Extract it to `.obsidian/plugins/study-zen/` in your vault.
 3. Enable Study Zen in Obsidian settings.
+
+If a release has not been published yet, download the `study-zen-plugin` artifact from the latest successful GitHub Actions `CI` workflow and extract the nested `study-zen-<version>.zip` the same way.
 
 ## Privacy
 
@@ -53,9 +61,10 @@ npm test
 npm run typecheck
 npm run lint
 npm run build
+npm run package
 ```
 
-The production build creates `main.js` at the repository root. Release artifacts are `main.js`, `manifest.json`, and `styles.css`.
+The production build creates `main.js` at the repository root. `npm run package` creates the installable archive `release/study-zen-<version>.zip`.
 
 For local development with automatic rebuilds, use:
 

@@ -38,18 +38,14 @@ jobs:
         run: npm run build
 
       - name: Package
-        run: |
-          mkdir release
-          cp main.js manifest.json styles.css release/
-          cd release
-          zip -r ../study-zen-${{ github.ref_name }}.zip .
+        run: npm run package
 
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          files: study-zen-${{ github.ref_name }}.zip
+          files: release/study-zen-*.zip
           body: |
-            Download `study-zen-${{ github.ref_name }}.zip` and extract it to `.obsidian/plugins/study-zen/`.
+            Download the `study-zen-*.zip` archive and extract it to `.obsidian/plugins/study-zen/`.
           draft: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
