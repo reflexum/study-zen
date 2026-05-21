@@ -62,7 +62,7 @@ describe("StatsService", () => {
       session({ focusedSeconds: 900, focusRating: 2, interrupted: true }),
       session({ focusedSeconds: 1200, focusRating: 3, interrupted: false }),
       session({ focusedSeconds: 1500, focusRating: 4, interrupted: true })
-    ]);
+    ], "en");
 
     expect(stats.averageFocusRating).toBe(3);
     expect(stats.interruptionRate).toBeCloseTo(2 / 3);

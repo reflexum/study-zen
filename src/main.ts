@@ -46,37 +46,37 @@ export default class StudyZenPlugin extends Plugin {
     this.statusBarItem.addClass("study-zen-status");
     this.updateStatusBar();
 
-    this.addRibbonIcon("timer", bi("Start Study Zen", "Начать Study Zen"), () => this.openStartSessionModal());
+    this.addRibbonIcon("timer", this.t("Start Study Zen", "Начать Study Zen"), () => this.openStartSessionModal());
     this.addCommand({
       id: "start-study-zen-session",
-      name: bi("Start session", "Начать сессию"),
+      name: this.t("Start session", "Начать сессию"),
       callback: () => this.openStartSessionModal()
     });
     this.addCommand({
       id: "stop-study-zen-session",
-      name: bi("Stop session", "Завершить сессию"),
+      name: this.t("Stop session", "Завершить сессию"),
       callback: () => this.openEndSessionModal()
     });
     this.addCommand({
       id: "pause-study-zen-session",
-      name: bi("Pause session", "Поставить на паузу"),
+      name: this.t("Pause session", "Поставить на паузу"),
       callback: () => this.pauseSession()
     });
     this.addCommand({
       id: "resume-study-zen-session",
-      name: bi("Resume session", "Продолжить сессию"),
+      name: this.t("Resume session", "Продолжить сессию"),
       callback: () => this.resumeSession()
     });
     this.addCommand({
       id: "open-study-zen-stats",
-      name: bi("Open stats", "Открыть статистику"),
+      name: this.t("Open stats", "Открыть статистику"),
       callback: () => {
         void this.openStatsView();
       }
     });
     this.addCommand({
       id: "open-study-zen-focus",
-      name: bi("Open focus view", "Открыть экран фокуса"),
+      name: this.t("Open focus view", "Открыть экран фокуса"),
       callback: () => {
         void this.openFocusView();
       }
@@ -96,7 +96,7 @@ export default class StudyZenPlugin extends Plugin {
           }
         })
     );
-    this.registerView(VIEW_TYPE_STUDY_ZEN_STATS, (leaf) => new StatsView(leaf, () => this.sessions, this.statsService));
+    this.registerView(VIEW_TYPE_STUDY_ZEN_STATS, (leaf) => new StatsView(leaf, () => this.sessions, () => this.settings, this.statsService));
     this.addSettingTab(new StudyZenSettingTab(this.app, this));
 
     this.openRecoveryModalIfNeeded();
@@ -120,7 +120,7 @@ export default class StudyZenPlugin extends Plugin {
       stored = (await this.loadData()) as StoredStudyZenData | null;
     } catch (error) {
       console.error("Study Zen failed to load plugin data", error);
-      new Notice("Study Zen could not load saved data. Using defaults for this session.");
+      new Notice(this.t("Study Zen could not load saved data. Using defaults for this session.", "Study Zen не смог загрузить сохранённые данные. В этой сессии используются настройки по умолчанию."));
     }
 
     const data = mergeStudyZenData(stored);
@@ -137,11 +137,17 @@ export default class StudyZenPlugin extends Plugin {
     } satisfies StudyZenData);
   }
 
+  refreshLanguage(): void {
+    this.updateStatusBar();
+    this.refreshFocusViews();
+    this.refreshStatsViews();
+  }
+
   private openStartSessionModal(): void {
     new StartSessionModal(this.app, this.settings, async (input) => {
       const started = await this.sessionService.start(input);
       if (started) {
-        this.statusBarItem?.setText("Study Zen starting...");
+        this.statusBarItem?.setText(this.t("Study Zen starting...", "Study Zen запускается..."));
         await this.openFocusView();
         this.refreshFocusViews();
       }
@@ -151,14 +157,14 @@ export default class StudyZenPlugin extends Plugin {
 
   private openEndSessionModal(): void {
     if (!this.sessionService.getActiveSession()) {
-      new Notice(bi("No Study Zen session is active.", "Нет активной сессии Study Zen."));
+      new Notice(this.t("No Study Zen session is active.", "Нет активной сессии Study Zen."));
       return;
     }
 
     if (this.endSessionModalOpen) return;
 
     const session = this.sessionService.getActiveSession();
-    const modal = new EndSessionModal(this.app, false, session, (seconds) => this.timerService.format(seconds), async (input) => {
+    const modal = new EndSessionModal(this.app, false, session, (seconds) => this.timerService.format(seconds), this.settings.language, async (input) => {
       const record = await this.sessionService.stop(input);
       if (record) {
         this.updateStatusBar();
@@ -179,38 +185,38 @@ export default class StudyZenPlugin extends Plugin {
   private pauseSession(): void {
     const session = this.sessionService.getActiveSession();
     if (!session) {
-      new Notice(bi("No Study Zen session is active.", "Нет активной сессии Study Zen."));
+      new Notice(this.t("No Study Zen session is active.", "Нет активной сессии Study Zen."));
       return;
     }
 
     this.sessionService.pause();
     this.updateStatusBar();
     this.refreshFocusViews();
-    new Notice(bi("Study Zen session paused.", "Сессия Study Zen на паузе."));
+    new Notice(this.t("Study Zen session paused.", "Сессия Study Zen на паузе."));
   }
 
   private resumeSession(): void {
     const session = this.sessionService.getActiveSession();
     if (!session) {
-      new Notice(bi("No Study Zen session is active.", "Нет активной сессии Study Zen."));
+      new Notice(this.t("No Study Zen session is active.", "Нет активной сессии Study Zen."));
       return;
     }
 
     this.sessionService.resume();
     this.updateStatusBar();
     this.refreshFocusViews();
-    new Notice(bi("Study Zen session resumed.", "Сессия Study Zen продолжена."));
+    new Notice(this.t("Study Zen session resumed.", "Сессия Study Zen продолжена."));
   }
 
   private skipPomodoroBreak(): void {
     if (!this.sessionService.skipPomodoroBreak()) {
-      new Notice(bi("There is no Pomodoro break to skip.", "Сейчас нет перерыва Помодоро, который можно пропустить."));
+      new Notice(this.t("There is no Pomodoro break to skip.", "Сейчас нет перерыва Помодоро, который можно пропустить."));
       return;
     }
 
     this.updateStatusBar();
     this.refreshFocusViews();
-    new Notice(bi("Break skipped. Back to focus.", "Перерыв пропущен. Возвращаемся к фокусу."));
+    new Notice(this.t("Break skipped. Back to focus.", "Перерыв пропущен. Возвращаемся к фокусу."));
   }
 
   private async openFocusView(): Promise<void> {
@@ -249,7 +255,7 @@ export default class StudyZenPlugin extends Plugin {
     if (!this.statusBarItem) return;
 
     const session = event?.session ?? this.sessionService?.getActiveSession() ?? null;
-    this.statusBarItem.setText(formatStatusText(session, (seconds) => this.timerService.format(seconds)));
+    this.statusBarItem.setText(formatStatusText(session, (seconds) => this.timerService.format(seconds), this.settings.language));
   }
 
   private async saveSession(record: StudySessionRecord): Promise<void> {
@@ -299,7 +305,7 @@ export default class StudyZenPlugin extends Plugin {
     if (!this.activeSession) return;
 
     const recoveredSession = { ...this.activeSession };
-    new RecoveryModal(this.app, recoveredSession, (seconds) => this.timerService.format(seconds), {
+    new RecoveryModal(this.app, recoveredSession, (seconds) => this.timerService.format(seconds), this.settings.language, {
       resume: async (session) => {
         const restored = await this.sessionService.restore(session);
         if (restored) {
@@ -319,5 +325,9 @@ export default class StudyZenPlugin extends Plugin {
         this.updateStatusBar();
       }
     }).open();
+  }
+
+  private t(en: string, ru: string): string {
+    return bi(en, ru, this.settings.language);
   }
 }

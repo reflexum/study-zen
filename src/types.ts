@@ -1,4 +1,4 @@
-import { bi } from "./i18n";
+import { StudyZenLanguage, bi } from "./i18n";
 
 export type StudyMode = "zen" | "pomodoro" | "sprint" | "deep";
 export type PomodoroPhase = "focus" | "break";
@@ -21,20 +21,34 @@ export interface SystemFocusSettings {
   endCommand: string;
 }
 
-export const SYSTEM_FOCUS_PLATFORM_PRESETS: Record<SystemFocusSettings["platformPreset"], { label: string; description: string }> = {
-  custom: { label: bi("Custom", "Свои команды"), description: bi("Use your own local shell commands.", "Используйте собственные локальные shell-команды.") },
-  "macos-shortcuts": {
-    label: "macOS Shortcuts",
-    description: bi("Run local commands that trigger macOS Shortcuts or Focus.", "Запускайте локальные команды для macOS Shortcuts или Focus.")
-  },
-  "linux-custom": { label: bi("Linux custom", "Linux свои команды"), description: bi("Run local Linux desktop focus commands.", "Запускайте локальные команды фокуса для Linux desktop.") },
-  "windows-powershell": {
-    label: "Windows PowerShell",
-    description: bi("Run local PowerShell commands for focus or notifications.", "Запускайте локальные PowerShell-команды для фокуса или уведомлений.")
+export function systemFocusPresetLabel(preset: SystemFocusSettings["platformPreset"], language: StudyZenLanguage = "ru"): string {
+  switch (preset) {
+    case "custom":
+      return bi("Custom", "Свои команды", language);
+    case "macos-shortcuts":
+      return "macOS Shortcuts";
+    case "linux-custom":
+      return bi("Linux custom", "Linux свои команды", language);
+    case "windows-powershell":
+      return "Windows PowerShell";
   }
-};
+}
+
+export function systemFocusPresetDescription(preset: SystemFocusSettings["platformPreset"], language: StudyZenLanguage = "ru"): string {
+  switch (preset) {
+    case "custom":
+      return bi("Use your own local shell commands.", "Используйте собственные локальные shell-команды.", language);
+    case "macos-shortcuts":
+      return bi("Run local commands that trigger macOS Shortcuts or Focus.", "Запускайте локальные команды для macOS Shortcuts или Focus.", language);
+    case "linux-custom":
+      return bi("Run local Linux desktop focus commands.", "Запускайте локальные команды фокуса для Linux desktop.", language);
+    case "windows-powershell":
+      return bi("Run local PowerShell commands for focus or notifications.", "Запускайте локальные PowerShell-команды для фокуса или уведомлений.", language);
+  }
+}
 
 export interface StudyZenSettings {
+  language: StudyZenLanguage;
   defaultMode: StudyMode;
   zenDefaultMinutes: number;
   sprintDefaultMinutes: number;
@@ -99,6 +113,7 @@ export interface EndSessionInput {
 }
 
 export const DEFAULT_SETTINGS: StudyZenSettings = {
+  language: "ru",
   defaultMode: "zen",
   zenDefaultMinutes: 45,
   sprintDefaultMinutes: 25,
@@ -125,15 +140,15 @@ export const DEFAULT_SETTINGS: StudyZenSettings = {
 export const VIEW_TYPE_STUDY_ZEN_STATS = "study-zen-stats";
 export const VIEW_TYPE_STUDY_ZEN_FOCUS = "study-zen-focus";
 
-export function modeLabel(mode: StudyMode): string {
+export function modeLabel(mode: StudyMode, language: StudyZenLanguage = "ru"): string {
   switch (mode) {
     case "zen":
-      return bi("Zen Session", "Дзен-сессия");
+      return bi("Zen Session", "Дзен-сессия", language);
     case "pomodoro":
-      return bi("Pomodoro", "Помодоро");
+      return bi("Pomodoro", "Помодоро", language);
     case "sprint":
-      return bi("Study Sprint", "Учебный спринт");
+      return bi("Study Sprint", "Учебный спринт", language);
     case "deep":
-      return bi("Deep Study", "Глубокая учёба");
+      return bi("Deep Study", "Глубокая учёба", language);
   }
 }

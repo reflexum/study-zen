@@ -27,7 +27,7 @@ export class FocusView extends ItemView {
   }
 
   getDisplayText(): string {
-    return bi("Study Zen Focus", "Фокус Study Zen");
+    return this.t("Study Zen Focus", "Фокус Study Zen");
   }
 
   getIcon(): string {
@@ -53,15 +53,15 @@ export class FocusView extends ItemView {
   }
 
   private renderIdle(container: Element): void {
-    container.createEl("h2", { text: bi("Study Zen Focus", "Фокус Study Zen") });
+    container.createEl("h2", { text: this.t("Study Zen Focus", "Фокус Study Zen") });
     container.createDiv({
       cls: "study-zen-focus-empty",
-      text: bi("No active focus session.", "Нет активной сессии фокуса.")
+      text: this.t("No active focus session.", "Нет активной сессии фокуса.")
     });
 
     const controls = container.createDiv({ cls: "study-zen-focus-controls" });
-    this.actionButton(controls, bi("Start session", "Начать сессию"), "play", this.actions.start, true);
-    this.actionButton(controls, bi("Stats", "Статистика"), "bar-chart-3", this.actions.openStats);
+    this.actionButton(controls, this.t("Start session", "Начать сессию"), "play", this.actions.start, true);
+    this.actionButton(controls, this.t("Stats", "Статистика"), "bar-chart-3", this.actions.openStats);
   }
 
   private renderActive(container: Element, session: ActiveSession): void {
@@ -71,10 +71,10 @@ export class FocusView extends ItemView {
     const remainingSeconds = plannedSeconds === null ? null : Math.max(0, plannedSeconds - session.focusedSeconds);
 
     const header = container.createDiv({ cls: "study-zen-focus-header" });
-    header.createEl("h2", { text: modeLabel(session.mode) });
+    header.createEl("h2", { text: modeLabel(session.mode, settings.language) });
     header.createDiv({
       cls: session.paused ? "study-zen-focus-state is-paused" : "study-zen-focus-state",
-      text: session.paused ? bi("Paused", "Пауза") : bi("In focus", "В фокусе")
+      text: session.paused ? this.t("Paused", "Пауза") : this.t("In focus", "В фокусе")
     });
 
     const hero = container.createDiv({ cls: "study-zen-focus-hero" });
@@ -84,27 +84,27 @@ export class FocusView extends ItemView {
     ringInner.createDiv({ cls: "study-zen-focus-time", text: this.formatSeconds(session.focusedSeconds) });
     ringInner.createDiv({
       cls: "study-zen-focus-progress-label",
-      text: plannedSeconds === null ? bi("Open-ended", "Без лимита") : `${Math.round(progress * 100)}% ${bi("planned", "плана")}`
+      text: plannedSeconds === null ? this.t("Open-ended", "Без лимита") : `${Math.round(progress * 100)}% ${this.t("planned", "плана")}`
     });
 
     const summary = hero.createDiv({ cls: "study-zen-focus-summary" });
-    summary.createDiv({ cls: "study-zen-focus-goal-label", text: bi("Current goal", "Текущая цель") });
+    summary.createDiv({ cls: "study-zen-focus-goal-label", text: this.t("Current goal", "Текущая цель") });
     summary.createDiv({ cls: "study-zen-focus-goal", text: session.goal });
     if (session.expectedResult) summary.createDiv({ cls: "study-zen-focus-result", text: session.expectedResult });
 
     const metrics = container.createDiv({ cls: "study-zen-focus-metrics" });
-    this.metric(metrics, bi("Elapsed", "Прошло"), this.formatSeconds(session.elapsedSeconds));
-    this.metric(metrics, bi("Remaining", "Осталось"), remainingSeconds === null ? bi("Open", "Свободно") : this.formatSeconds(remainingSeconds));
-    this.metric(metrics, bi("Phase", "Фаза"), this.getPhaseLabel(session, settings));
-    this.metric(metrics, bi("Phase left", "До конца фазы"), this.getPhaseRemainingLabel(session, settings));
-    this.metric(metrics, bi("Cycles", "Циклы"), String(session.pomodoroCyclesCompleted));
+    this.metric(metrics, this.t("Elapsed", "Прошло"), this.formatSeconds(session.elapsedSeconds));
+    this.metric(metrics, this.t("Remaining", "Осталось"), remainingSeconds === null ? this.t("Open", "Свободно") : this.formatSeconds(remainingSeconds));
+    this.metric(metrics, this.t("Phase", "Фаза"), this.getPhaseLabel(session, settings));
+    this.metric(metrics, this.t("Phase left", "До конца фазы"), this.getPhaseRemainingLabel(session, settings));
+    this.metric(metrics, this.t("Cycles", "Циклы"), String(session.pomodoroCyclesCompleted));
 
     const controls = container.createDiv({ cls: "study-zen-focus-controls" });
-    if (session.paused) this.actionButton(controls, bi("Resume", "Продолжить"), "play", this.actions.resume, true);
-    else this.actionButton(controls, bi("Pause", "Пауза"), "pause", this.actions.pause);
-    if (session.mode === "pomodoro" && session.pomodoroPhase === "break") this.actionButton(controls, bi("Skip break", "Пропустить перерыв"), "skip-forward", this.actions.skipBreak);
-    this.actionButton(controls, bi("Finish", "Завершить"), "square", this.actions.stop, true);
-    this.actionButton(controls, bi("Stats", "Статистика"), "bar-chart-3", this.actions.openStats);
+    if (session.paused) this.actionButton(controls, this.t("Resume", "Продолжить"), "play", this.actions.resume, true);
+    else this.actionButton(controls, this.t("Pause", "Пауза"), "pause", this.actions.pause);
+    if (session.mode === "pomodoro" && session.pomodoroPhase === "break") this.actionButton(controls, this.t("Skip break", "Пропустить перерыв"), "skip-forward", this.actions.skipBreak);
+    this.actionButton(controls, this.t("Finish", "Завершить"), "square", this.actions.stop, true);
+    this.actionButton(controls, this.t("Stats", "Статистика"), "bar-chart-3", this.actions.openStats);
   }
 
   private getPlannedFocusSeconds(session: ActiveSession): number | null {
@@ -114,16 +114,16 @@ export class FocusView extends ItemView {
 
   private getPhaseLabel(session: ActiveSession, settings: StudyZenSettings): string {
     if (session.mode === "pomodoro") {
-      const phase = session.pomodoroPhase === "break" ? bi("Break", "Перерыв") : bi("Focus", "Фокус");
+      const phase = session.pomodoroPhase === "break" ? this.t("Break", "Перерыв") : this.t("Focus", "Фокус");
       return `${phase} ${settings.pomodoroFocusMinutes}/${settings.pomodoroBreakMinutes}m`;
     }
 
-    if (session.mode === "deep") return bi(`Checkpoint every ${settings.deepCheckpointMinutes}m`, `Контроль каждые ${settings.deepCheckpointMinutes} мин`);
-    return bi("Single focus block", "Один фокус-блок");
+    if (session.mode === "deep") return this.t(`Checkpoint every ${settings.deepCheckpointMinutes}m`, `Контроль каждые ${settings.deepCheckpointMinutes} мин`);
+    return this.t("Single focus block", "Один фокус-блок");
   }
 
   private getPhaseRemainingLabel(session: ActiveSession, settings: StudyZenSettings): string {
-    if (session.mode !== "pomodoro") return bi("Not phased", "Без фаз");
+    if (session.mode !== "pomodoro") return this.t("Not phased", "Без фаз");
 
     const focusSeconds = (settings.pomodoroFocusMinutes > 0 ? settings.pomodoroFocusMinutes : 25) * 60;
     const breakSeconds = (settings.pomodoroBreakMinutes > 0 ? settings.pomodoroBreakMinutes : 5) * 60;
@@ -141,5 +141,9 @@ export class FocusView extends ItemView {
   private actionButton(parent: HTMLElement, text: string, icon: string, onClick: () => void, cta = false): void {
     const button = new ButtonComponent(parent).setButtonText(text).setIcon(icon).onClick(onClick);
     if (cta) button.setCta();
+  }
+
+  private t(en: string, ru: string): string {
+    return bi(en, ru, this.getSettings().language);
   }
 }

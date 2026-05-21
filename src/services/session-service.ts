@@ -27,7 +27,7 @@ export class SessionService {
 
   async start(input: StartSessionInput): Promise<boolean> {
     if (this.activeSession) {
-      new Notice(bi("Study Zen is already active.", "Study Zen уже активен."));
+      new Notice(this.t("Study Zen is already active.", "Study Zen уже активен."));
       return false;
     }
 
@@ -37,20 +37,20 @@ export class SessionService {
     this.setActiveSession(session);
 
     this.focusShield.apply(settings.focusShield);
-    await this.systemFocus.runStart(settings.systemFocus);
+    await this.systemFocus.runStart(settings.systemFocus, settings.language);
     if (this.lifecycleToken !== token || this.activeSession !== session) {
       if (this.activeSession === session) this.setActiveSession(null);
-      await this.systemFocus.runEnd(settings.systemFocus);
+      await this.systemFocus.runEnd(settings.systemFocus, settings.language);
       return false;
     }
     this.timer.start(() => this.activeSession, this.getSettings, this.onTick);
-    new Notice(bi("Study Zen session started.", "Сессия Study Zen началась."));
+    new Notice(this.t("Study Zen session started.", "Сессия Study Zen началась."));
     return true;
   }
 
   async restore(session: ActiveSession): Promise<boolean> {
     if (this.activeSession) {
-      new Notice(bi("Study Zen is already active.", "Study Zen уже активен."));
+      new Notice(this.t("Study Zen is already active.", "Study Zen уже активен."));
       return false;
     }
 
@@ -60,15 +60,15 @@ export class SessionService {
     this.setActiveSession(restoredSession);
 
     this.focusShield.apply(settings.focusShield);
-    await this.systemFocus.runStart(settings.systemFocus);
+    await this.systemFocus.runStart(settings.systemFocus, settings.language);
     if (this.lifecycleToken !== token || this.activeSession !== restoredSession) {
       if (this.activeSession === restoredSession) this.setActiveSession(null);
-      await this.systemFocus.runEnd(settings.systemFocus);
+      await this.systemFocus.runEnd(settings.systemFocus, settings.language);
       return false;
     }
 
     this.timer.start(() => this.activeSession, this.getSettings, this.onTick);
-    new Notice(bi("Study Zen session restored.", "Сессия Study Zen восстановлена."));
+    new Notice(this.t("Study Zen session restored.", "Сессия Study Zen восстановлена."));
     return true;
   }
 
@@ -99,7 +99,7 @@ export class SessionService {
     if (this.stopInFlight) return this.stopInFlight;
 
     if (!this.activeSession) {
-      new Notice(bi("No Study Zen session is active.", "Нет активной сессии Study Zen."));
+      new Notice(this.t("No Study Zen session is active.", "Нет активной сессии Study Zen."));
       return null;
     }
 
@@ -120,7 +120,7 @@ export class SessionService {
     this.lifecycleToken += 1;
     this.timer.stop();
     this.focusShield.restore();
-    await this.systemFocus.runEnd(this.getSettings().systemFocus);
+    await this.systemFocus.runEnd(this.getSettings().systemFocus, this.getSettings().language);
 
     const record = createSessionRecord(session, input, Date.now());
 
@@ -128,7 +128,7 @@ export class SessionService {
       await this.onSessionSaved(record);
     } catch (error) {
       console.error("Study Zen failed to save session", error);
-      new Notice(bi("Study Zen could not save the session. Please try stopping again.", "Study Zen не смог сохранить сессию. Попробуйте завершить её ещё раз."));
+      new Notice(this.t("Study Zen could not save the session. Please try stopping again.", "Study Zen не смог сохранить сессию. Попробуйте завершить её ещё раз."));
       this.setActiveSession(session);
       const settings = this.getSettings();
       try {
@@ -137,7 +137,7 @@ export class SessionService {
         console.error("Study Zen failed to reapply Focus Shield after save failure", restoreError);
       }
       try {
-        await this.systemFocus.runStart(settings.systemFocus);
+        await this.systemFocus.runStart(settings.systemFocus, settings.language);
       } catch (systemFocusError) {
         console.error("Study Zen failed to restart system focus after save failure", systemFocusError);
       }
@@ -146,7 +146,7 @@ export class SessionService {
     }
 
     if (this.activeSession === session) this.setActiveSession(null);
-    new Notice(bi("Study Zen session saved.", "Сессия Study Zen сохранена."));
+    new Notice(this.t("Study Zen session saved.", "Сессия Study Zen сохранена."));
     return record;
   }
 
@@ -164,7 +164,7 @@ export class SessionService {
     if (session) {
       session.paused = true;
       try {
-        await this.systemFocus.runEnd(this.getSettings().systemFocus);
+        await this.systemFocus.runEnd(this.getSettings().systemFocus, this.getSettings().language);
       } catch (error) {
         console.error("Study Zen failed to end system focus during suspend", error);
       }
@@ -197,7 +197,7 @@ export class SessionService {
 
     if (session) {
       try {
-        await this.systemFocus.runEnd(this.getSettings().systemFocus);
+        await this.systemFocus.runEnd(this.getSettings().systemFocus, this.getSettings().language);
       } catch (error) {
         console.error("Study Zen failed to end system focus during unload", error);
       }
@@ -209,5 +209,9 @@ export class SessionService {
   private setActiveSession(session: ActiveSession | null): void {
     this.activeSession = session;
     this.onActiveSessionChanged(session);
+  }
+
+  private t(en: string, ru: string): string {
+    return bi(en, ru, this.getSettings().language);
   }
 }

@@ -44,13 +44,13 @@ describe("TimerService", () => {
     expect(activeSession.elapsedSeconds).toBe(1500);
     expect(activeSession.focusedSeconds).toBe(1500);
     expect(activeSession.pomodoroPhase).toBe("break");
-    expect(messages).toContain("Focus round complete. Take a short break. / Фокус-раунд завершён. Сделайте короткий перерыв.");
+    expect(messages).toContain("Фокус-раунд завершён. Сделайте короткий перерыв.");
 
     vi.advanceTimersByTime(DEFAULT_SETTINGS.pomodoroBreakMinutes * 60 * 1000);
     expect(activeSession.elapsedSeconds).toBe(1800);
     expect(activeSession.focusedSeconds).toBe(1500);
     expect(activeSession.pomodoroPhase).toBe("focus");
-    expect(messages).toContain("Break complete. Start the next focus round. / Перерыв завершён. Начните следующий фокус-раунд.");
+    expect(messages).toContain("Перерыв завершён. Начните следующий фокус-раунд.");
 
     service.stop();
   });
@@ -96,8 +96,29 @@ describe("TimerService", () => {
 
     vi.advanceTimersByTime(61 * 1000);
 
-    expect(messages).toEqual(["Planned focus time complete. Finish the session or continue intentionally. / Плановое время фокуса завершено. Завершите сессию или осознанно продолжайте."]);
+    expect(messages).toEqual(["Плановое время фокуса завершено. Завершите сессию или осознанно продолжайте."]);
     expect(activeSession.plannedCompletionNotified).toBe(true);
+
+    service.stop();
+  });
+
+  it("uses English timer messages when English is selected", () => {
+    vi.useFakeTimers();
+    const service = new TimerService();
+    const activeSession = pomodoroSession();
+    const messages: string[] = [];
+
+    service.start(
+      () => activeSession,
+      () => ({ ...DEFAULT_SETTINGS, language: "en" as const }),
+      (event) => {
+        if (event.message) messages.push(event.message);
+      }
+    );
+
+    vi.advanceTimersByTime(DEFAULT_SETTINGS.pomodoroFocusMinutes * 60 * 1000);
+
+    expect(messages).toContain("Focus round complete. Take a short break.");
 
     service.stop();
   });

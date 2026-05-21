@@ -24,7 +24,7 @@ describe("SystemFocusService", () => {
 
     await service.test("   ");
 
-    expect(noticeSpy).toHaveBeenCalledWith("Study Zen system focus test command is empty. / Тестовая команда системного фокуса Study Zen пустая.", undefined);
+    expect(noticeSpy).toHaveBeenCalledWith("Тестовая команда системного фокуса Study Zen пустая.", undefined);
     expect(execMock).not.toHaveBeenCalled();
   });
 
@@ -35,7 +35,17 @@ describe("SystemFocusService", () => {
 
     await service.runStart({ enabled: true, platformPreset: "custom", startCommand: "danger", endCommand: "" });
 
-    expect(noticeSpy).toHaveBeenCalledWith("Study Zen system focus commands are desktop-only. / Команды системного фокуса Study Zen доступны только в desktop-версии.", undefined);
+    expect(noticeSpy).toHaveBeenCalledWith("Команды системного фокуса Study Zen доступны только в desktop-версии.", undefined);
+    expect(execMock).not.toHaveBeenCalled();
+  });
+
+  it("uses English system focus notices when English is selected", async () => {
+    const noticeSpy = vi.spyOn(Notice.prototype as unknown as NoticeConstructorHook, "constructor__");
+    const service = new SystemFocusService();
+
+    await service.test("   ", "en");
+
+    expect(noticeSpy).toHaveBeenCalledWith("Study Zen system focus test command is empty.", undefined);
     expect(execMock).not.toHaveBeenCalled();
   });
 });
