@@ -54,6 +54,12 @@ npm run build
 
 The production build creates `main.js` at the repository root. Release artifacts are `main.js`, `manifest.json`, and `styles.css`.
 
+For local development with automatic rebuilds, use:
+
+```bash
+npm run dev
+```
+
 ## License
 
 MIT

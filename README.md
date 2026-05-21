@@ -54,6 +54,12 @@ npm run build
 
 Production build создаёт `main.js` в корне репозитория. Release-артефакты: `main.js`, `manifest.json` и `styles.css`.
 
+Для локальной разработки с автоматической пересборкой используйте:
+
+```bash
+npm run dev
+```
+
 ## Лицензия
 
 MIT
