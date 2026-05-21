@@ -33,11 +33,19 @@ Study Zen рассчитан на студентов и самостоятель
 
 Язык интерфейса меняется в настройках Study Zen. После переключения язык экранов, модальных окон, уведомлений, статистики и рекомендаций обновляется на выбранный.
 
+## Документация
+
+- Документация пользователя: этот README и [английская версия](README.en.md).
+- Документация для разработчиков: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
+- Инструкция для проверки проекта и установки без сборки: [docs/REVIEWER.md](docs/REVIEWER.md).
+
 ## Установка
 
 1. Скачайте последний `study-zen-<version>.zip` из GitHub Releases.
 2. Распакуйте его в `.obsidian/plugins/study-zen/` внутри вашего vault.
 3. Включите Study Zen в настройках Obsidian.
+
+Если релиз ещё не опубликован, скачайте artifact `study-zen-plugin` из последнего успешного GitHub Actions workflow `CI` и распакуйте вложенный `study-zen-<version>.zip` тем же способом.
 
 ## Приватность
 
@@ -53,9 +61,10 @@ npm test
 npm run typecheck
 npm run lint
 npm run build
+npm run package
 ```
 
-Production build создаёт `main.js` в корне репозитория. Release-артефакты: `main.js`, `manifest.json` и `styles.css`.
+Production build создаёт `main.js` в корне репозитория. `npm run package` создаёт установочный архив `release/study-zen-<version>.zip`.
 
 Для локальной разработки с автоматической пересборкой используйте:
 

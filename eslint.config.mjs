@@ -5,12 +5,12 @@ import globals from "globals";
 
 export default tseslint.config(
   {
-    ignores: ["node_modules", "main.js", "coverage", "docs", ".superpowers", ".obsidian"]
+    ignores: ["node_modules", "main.js", "coverage", "release", "docs", ".superpowers", ".obsidian"]
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ["src/**/*.ts", "tests/**/*.ts", "*.mjs", "*.ts"],
+    files: ["src/**/*.ts", "tests/**/*.ts", "scripts/**/*.mjs", "*.mjs", "*.ts"],
     plugins: {
       obsidianmd
     },
