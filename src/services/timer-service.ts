@@ -44,23 +44,23 @@ export class TimerService {
       const checkpointSeconds = settings.deepCheckpointMinutes * 60;
       if (checkpointSeconds > 0 && session.elapsedSeconds - session.lastCheckpointSeconds >= checkpointSeconds) {
         session.lastCheckpointSeconds = session.elapsedSeconds;
-        cycleMessage = bi("Deep Study checkpoint: are you still with the goal?", "Контрольная точка глубокой учёбы: вы всё ещё держитесь цели?");
+        cycleMessage = bi("Deep Study checkpoint: are you still with the goal?", "Контрольная точка глубокой учёбы: вы всё ещё держитесь цели?", settings.language);
       }
     }
 
-    const completionMessage = this.getPlannedCompletionMessage(session);
+    const completionMessage = this.getPlannedCompletionMessage(session, settings);
     if (cycleMessage && completionMessage) return `${completionMessage} ${cycleMessage}`;
     return cycleMessage ?? completionMessage;
   }
 
-  private getPlannedCompletionMessage(session: ActiveSession): string | undefined {
+  private getPlannedCompletionMessage(session: ActiveSession, settings: StudyZenSettings): string | undefined {
     if (session.mode === "pomodoro") return undefined;
 
     const plannedSeconds = this.getPlannedFocusSeconds(session);
     if (plannedSeconds === null || session.plannedCompletionNotified || session.focusedSeconds < plannedSeconds) return undefined;
 
     session.plannedCompletionNotified = true;
-    return bi("Planned focus time complete. Finish the session or continue intentionally.", "Плановое время фокуса завершено. Завершите сессию или осознанно продолжайте.");
+    return bi("Planned focus time complete. Finish the session or continue intentionally.", "Плановое время фокуса завершено. Завершите сессию или осознанно продолжайте.", settings.language);
   }
 
   private getPlannedFocusSeconds(session: ActiveSession): number | null {
@@ -81,11 +81,11 @@ export class TimerService {
     session.phaseStartedAtSeconds = session.elapsedSeconds;
     if (session.pomodoroPhase === "break") {
       session.pomodoroPhase = "focus";
-      return bi("Break complete. Start the next focus round.", "Перерыв завершён. Начните следующий фокус-раунд.");
+      return bi("Break complete. Start the next focus round.", "Перерыв завершён. Начните следующий фокус-раунд.", settings.language);
     }
 
     session.pomodoroPhase = "break";
     session.pomodoroCyclesCompleted += 1;
-    return bi("Focus round complete. Take a short break.", "Фокус-раунд завершён. Сделайте короткий перерыв.");
+    return bi("Focus round complete. Take a short break.", "Фокус-раунд завершён. Сделайте короткий перерыв.", settings.language);
   }
 }

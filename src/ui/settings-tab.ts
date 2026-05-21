@@ -1,7 +1,7 @@
 import { App, Notice, Plugin, PluginSettingTab, Setting } from "obsidian";
-import { bi } from "../i18n";
+import { STUDY_ZEN_LANGUAGES, StudyZenLanguage, bi } from "../i18n";
 import { SystemFocusService } from "../services/system-focus-service";
-import { STUDY_MODES, SYSTEM_FOCUS_PLATFORM_PRESETS, StudyMode, StudyZenSettings, modeLabel } from "../types";
+import { STUDY_MODES, StudyMode, StudyZenSettings, modeLabel, systemFocusPresetDescription, systemFocusPresetLabel } from "../types";
 
 type NumberSettingKey =
   | "zenDefaultMinutes"
@@ -16,6 +16,7 @@ type FocusShieldKey = "enabled" | "hideRibbon" | "dimSidebars" | "hideStatusBar"
 export interface StudyZenPluginSettingsHost extends Plugin {
   settings: StudyZenSettings;
   systemFocusService: SystemFocusService;
+  refreshLanguage(): void;
   savePluginData(): Promise<void>;
 }
 
@@ -27,35 +28,45 @@ export class StudyZenSettingTab extends PluginSettingTab {
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
-    containerEl.createEl("h2", { text: bi("Study Zen Settings", "Настройки Study Zen") });
+    containerEl.createEl("h2", { text: this.t("Study Zen Settings", "Настройки Study Zen") });
 
-    new Setting(containerEl).setName(bi("Default mode", "Режим по умолчанию")).addDropdown((dropdown) => {
-      for (const mode of STUDY_MODES) dropdown.addOption(mode, modeLabel(mode));
+    new Setting(containerEl).setName(this.t("Interface language", "Язык интерфейса")).addDropdown((dropdown) => {
+      for (const [value, label] of Object.entries(STUDY_ZEN_LANGUAGES)) dropdown.addOption(value, label);
+      dropdown.setValue(this.plugin.settings.language).onChange(async (value) => {
+        this.plugin.settings.language = value as StudyZenLanguage;
+        await this.plugin.savePluginData();
+        this.plugin.refreshLanguage();
+        this.display();
+      });
+    });
+
+    new Setting(containerEl).setName(this.t("Default mode", "Режим по умолчанию")).addDropdown((dropdown) => {
+      for (const mode of STUDY_MODES) dropdown.addOption(mode, modeLabel(mode, this.plugin.settings.language));
       dropdown.setValue(this.plugin.settings.defaultMode).onChange(async (value) => {
         this.plugin.settings.defaultMode = value as StudyMode;
         await this.plugin.savePluginData();
       });
     });
 
-    this.numberSetting(bi("Zen default minutes", "Минуты дзен-сессии"), "zenDefaultMinutes");
-    this.numberSetting(bi("Sprint default minutes", "Минуты учебного спринта"), "sprintDefaultMinutes");
-    this.numberSetting(bi("Deep default minutes", "Минуты глубокой учёбы"), "deepDefaultMinutes");
-    this.numberSetting(bi("Deep checkpoint minutes", "Интервал контрольных точек"), "deepCheckpointMinutes");
-    this.numberSetting(bi("Pomodoro focus minutes", "Минуты фокуса Помодоро"), "pomodoroFocusMinutes");
-    this.numberSetting(bi("Pomodoro break minutes", "Минуты перерыва Помодоро"), "pomodoroBreakMinutes");
+    this.numberSetting(this.t("Zen default minutes", "Минуты дзен-сессии"), "zenDefaultMinutes");
+    this.numberSetting(this.t("Sprint default minutes", "Минуты учебного спринта"), "sprintDefaultMinutes");
+    this.numberSetting(this.t("Deep default minutes", "Минуты глубокой учёбы"), "deepDefaultMinutes");
+    this.numberSetting(this.t("Deep checkpoint minutes", "Интервал контрольных точек"), "deepCheckpointMinutes");
+    this.numberSetting(this.t("Pomodoro focus minutes", "Минуты фокуса Помодоро"), "pomodoroFocusMinutes");
+    this.numberSetting(this.t("Pomodoro break minutes", "Минуты перерыва Помодоро"), "pomodoroBreakMinutes");
 
-    containerEl.createEl("h3", { text: bi("Focus Shield", "Щит фокуса") });
-    this.focusToggle(bi("Enable Focus Shield", "Включить щит фокуса"), "enabled");
-    this.focusToggle(bi("Hide ribbon", "Скрыть ленту"), "hideRibbon");
-    this.focusToggle(bi("Dim sidebars", "Приглушить боковые панели"), "dimSidebars");
-    this.focusToggle(bi("Hide status bar", "Скрыть строку статуса"), "hideStatusBar");
-    this.focusToggle(bi("Mute Obsidian notices", "Приглушить уведомления Obsidian"), "hideNotifications");
-    this.focusToggle(bi("Calm editor", "Спокойный редактор"), "calmEditor");
+    containerEl.createEl("h3", { text: this.t("Focus Shield", "Щит фокуса") });
+    this.focusToggle(this.t("Enable Focus Shield", "Включить щит фокуса"), "enabled");
+    this.focusToggle(this.t("Hide ribbon", "Скрыть ленту"), "hideRibbon");
+    this.focusToggle(this.t("Dim sidebars", "Приглушить боковые панели"), "dimSidebars");
+    this.focusToggle(this.t("Hide status bar", "Скрыть строку статуса"), "hideStatusBar");
+    this.focusToggle(this.t("Mute Obsidian notices", "Приглушить уведомления Obsidian"), "hideNotifications");
+    this.focusToggle(this.t("Calm editor", "Спокойный редактор"), "calmEditor");
 
-    containerEl.createEl("h3", { text: bi("System Focus", "Системный фокус") });
+    containerEl.createEl("h3", { text: this.t("System Focus", "Системный фокус") });
     new Setting(containerEl)
-      .setName(bi("Enable system focus commands", "Включить команды системного фокуса"))
-      .setDesc(bi("Experimental desktop-only local command execution during session start/end.", "Экспериментальный запуск локальных команд на desktop при старте и завершении сессии."))
+      .setName(this.t("Enable system focus commands", "Включить команды системного фокуса"))
+      .setDesc(this.t("Experimental desktop-only local command execution during session start/end.", "Экспериментальный запуск локальных команд на desktop при старте и завершении сессии."))
       .addToggle((toggle) => {
         toggle.setValue(this.plugin.settings.systemFocus.enabled).onChange(async (value) => {
           this.plugin.settings.systemFocus.enabled = value;
@@ -64,10 +75,10 @@ export class StudyZenSettingTab extends PluginSettingTab {
       });
 
     new Setting(containerEl)
-      .setName(bi("System focus platform preset", "Профиль платформы системного фокуса"))
-      .setDesc(SYSTEM_FOCUS_PLATFORM_PRESETS[this.plugin.settings.systemFocus.platformPreset].description)
+      .setName(this.t("System focus platform preset", "Профиль платформы системного фокуса"))
+      .setDesc(systemFocusPresetDescription(this.plugin.settings.systemFocus.platformPreset, this.plugin.settings.language))
       .addDropdown((dropdown) => {
-        for (const [value, preset] of Object.entries(SYSTEM_FOCUS_PLATFORM_PRESETS)) dropdown.addOption(value, preset.label);
+        for (const value of ["custom", "macos-shortcuts", "linux-custom", "windows-powershell"] as const) dropdown.addOption(value, systemFocusPresetLabel(value, this.plugin.settings.language));
         dropdown.setValue(this.plugin.settings.systemFocus.platformPreset).onChange(async (value) => {
           this.plugin.settings.systemFocus.platformPreset = value as StudyZenSettings["systemFocus"]["platformPreset"];
           await this.plugin.savePluginData();
@@ -75,39 +86,39 @@ export class StudyZenSettingTab extends PluginSettingTab {
         });
       });
 
-    new Setting(containerEl).setName(bi("Start command", "Команда старта")).setDesc(bi("Runs locally when a Study Zen session starts.", "Запускается локально при старте сессии Study Zen.")).addText((text) => {
+    new Setting(containerEl).setName(this.t("Start command", "Команда старта")).setDesc(this.t("Runs locally when a Study Zen session starts.", "Запускается локально при старте сессии Study Zen.")).addText((text) => {
       text.setValue(this.plugin.settings.systemFocus.startCommand).onChange(async (value) => {
         this.plugin.settings.systemFocus.startCommand = value;
         await this.plugin.savePluginData();
       });
     });
 
-    new Setting(containerEl).setName(bi("End command", "Команда завершения")).setDesc(bi("Runs locally when a Study Zen session ends.", "Запускается локально при завершении сессии Study Zen.")).addText((text) => {
+    new Setting(containerEl).setName(this.t("End command", "Команда завершения")).setDesc(this.t("Runs locally when a Study Zen session ends.", "Запускается локально при завершении сессии Study Zen.")).addText((text) => {
       text.setValue(this.plugin.settings.systemFocus.endCommand).onChange(async (value) => {
         this.plugin.settings.systemFocus.endCommand = value;
         await this.plugin.savePluginData();
       });
     });
 
-    new Setting(containerEl).setName(bi("Test start command", "Проверить команду старта")).addButton((button) => {
-      button.setButtonText(bi("Test", "Проверить")).onClick(async () => {
+    new Setting(containerEl).setName(this.t("Test start command", "Проверить команду старта")).addButton((button) => {
+      button.setButtonText(this.t("Test", "Проверить")).onClick(async () => {
         if (!this.plugin.settings.systemFocus.startCommand.trim()) {
-          new Notice(bi("No Study Zen system focus start command configured.", "Команда старта системного фокуса Study Zen не настроена."));
+          new Notice(this.t("No Study Zen system focus start command configured.", "Команда старта системного фокуса Study Zen не настроена."));
           return;
         }
 
-        await this.plugin.systemFocusService.test(this.plugin.settings.systemFocus.startCommand);
+        await this.plugin.systemFocusService.test(this.plugin.settings.systemFocus.startCommand, this.plugin.settings.language);
       });
     });
 
-    new Setting(containerEl).setName(bi("Test end command", "Проверить команду завершения")).addButton((button) => {
-      button.setButtonText(bi("Test", "Проверить")).onClick(async () => {
+    new Setting(containerEl).setName(this.t("Test end command", "Проверить команду завершения")).addButton((button) => {
+      button.setButtonText(this.t("Test", "Проверить")).onClick(async () => {
         if (!this.plugin.settings.systemFocus.endCommand.trim()) {
-          new Notice(bi("No Study Zen system focus end command configured.", "Команда завершения системного фокуса Study Zen не настроена."));
+          new Notice(this.t("No Study Zen system focus end command configured.", "Команда завершения системного фокуса Study Zen не настроена."));
           return;
         }
 
-        await this.plugin.systemFocusService.test(this.plugin.settings.systemFocus.endCommand);
+        await this.plugin.systemFocusService.test(this.plugin.settings.systemFocus.endCommand, this.plugin.settings.language);
       });
     });
   }
@@ -117,7 +128,7 @@ export class StudyZenSettingTab extends PluginSettingTab {
       text.setValue(String(this.plugin.settings[key])).onChange(async (value) => {
         const minutes = Number(value);
         if (!Number.isFinite(minutes) || minutes <= 0) {
-          new Notice(bi(`${label} must be a positive number.`, `${label} должно быть положительным числом.`));
+          new Notice(this.t(`${label} must be a positive number.`, `${label} должно быть положительным числом.`));
           text.setValue(String(this.plugin.settings[key]));
           return;
         }
@@ -135,5 +146,9 @@ export class StudyZenSettingTab extends PluginSettingTab {
         await this.plugin.savePluginData();
       });
     });
+  }
+
+  private t(en: string, ru: string): string {
+    return bi(en, ru, this.plugin.settings.language);
   }
 }

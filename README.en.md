@@ -15,6 +15,7 @@ Study Zen is designed for students and independent researchers who keep notes, s
 - Reduce distractions with Focus Shield UI styling and optional muted Obsidian notices.
 - Use a dedicated Focus view with visual progress, active goal, Pomodoro phase countdown, and quick pause/resume/finish controls.
 - Restore unfinished active sessions after Obsidian restarts.
+- Switch the plugin interface language between English and Russian.
 - Track focus time, completion rate, interruption rate, streaks, daily focus, focus ratings, best focus window, and recent sessions.
 - Get local recommendations based on session history and work patterns.
 - Optionally run desktop system focus commands when sessions start and end.
@@ -23,12 +24,14 @@ Study Zen is designed for students and independent researchers who keep notes, s
 
 Use the command palette:
 
-- `Study Zen: Start session / Начать сессию` - choose mode, goal, result, and duration.
-- `Study Zen: Stop session / Завершить сессию` - finish the session and save reflection.
-- `Study Zen: Pause session / Поставить на паузу` - pause the active timer.
-- `Study Zen: Resume session / Продолжить сессию` - resume the active timer.
-- `Study Zen: Open focus view / Открыть экран фокуса` - open the visual focus dashboard.
-- `Study Zen: Open stats / Открыть статистику` - view focus statistics and recommendations.
+- `Study Zen: Start session` - choose mode, goal, result, and duration.
+- `Study Zen: Stop session` - finish the session and save reflection.
+- `Study Zen: Pause session` - pause the active timer.
+- `Study Zen: Resume session` - resume the active timer.
+- `Study Zen: Open focus view` - open the visual focus dashboard.
+- `Study Zen: Open stats` - view focus statistics and recommendations.
+
+Change the interface language in Study Zen settings. After switching, views, modals, notices, statistics, and recommendations use the selected language.
 
 ## Installation
 

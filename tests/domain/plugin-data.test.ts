@@ -14,6 +14,7 @@ describe("plugin data business logic", () => {
     });
 
     expect(data.settings.defaultMode).toBe("deep");
+    expect(data.settings.language).toBe("ru");
     expect(data.settings.focusShield).toEqual({ ...DEFAULT_SETTINGS.focusShield, enabled: false });
     expect(data.settings.systemFocus).toEqual({ ...DEFAULT_SETTINGS.systemFocus, enabled: true, startCommand: "start" });
     expect(data.activeSession).toBeNull();
