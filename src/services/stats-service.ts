@@ -116,16 +116,80 @@ export class StatsService {
   }
 
   private getRecommendations(sessions: StudySessionRecord[], stats: StudyZenStats, language: StudyZenLanguage): string[] {
-    if (sessions.length === 0) return [bi("Start one short Study Sprint to build momentum.", "Начните с короткого учебного спринта, чтобы набрать темп.", language)];
+    if (sessions.length === 0) {
+      return [
+        bi(
+          "Start with a short Study Sprint. Set one clear goal and finish it to create your first focus baseline.",
+          "Начните с короткого учебного спринта: выберите одну понятную цель и завершите её, чтобы появилась первая точка отсчёта.",
+          language
+        )
+      ];
+    }
 
     const recommendations: string[] = [];
-    if (stats.currentStreak >= 3) recommendations.push(bi(`You studied ${stats.currentStreak} days in a row. Keep the streak with a short Zen Session today.`, `Вы учились ${stats.currentStreak} дня подряд. Поддержите серию короткой дзен-сессией сегодня.`, language));
-    if (stats.bestFocusHour !== undefined) recommendations.push(bi(`Your strongest focus window starts around ${stats.bestFocusHour.toString().padStart(2, "0")}:00. Protect it for demanding study work.`, `Ваше самое сильное окно фокуса начинается около ${stats.bestFocusHour.toString().padStart(2, "0")}:00. Защитите его для сложной учёбы.`, language));
-    if (stats.interruptionRate >= 0.3 && sessions.length >= 3) recommendations.push(bi("Interruptions are frequent. Use Focus Shield and a shorter planned session for the next round.", "Прерывания случаются часто. Включите щит фокуса и выберите более короткую плановую сессию.", language));
-    if (stats.averageFocusRating !== undefined && stats.averageFocusRating < 3) recommendations.push(bi("Recent focus ratings are low. Try one concrete Study Sprint before a longer Deep Study block.", "Последние оценки фокуса низкие. Попробуйте один конкретный учебный спринт перед длинной глубокой учёбой.", language));
-    if (stats.mostUsedMode) recommendations.push(bi(`${modeLabel(stats.mostUsedMode, language)} is your most used mode. Use it when you need an easy start.`, `${modeLabel(stats.mostUsedMode, language)} — ваш самый частый режим. Используйте его, когда нужен лёгкий старт.`, language));
-    if (stats.completionRate < 0.5 && sessions.length >= 3) recommendations.push(bi("Your completion rate is below 50%. Try shorter Study Sprint sessions.", "Доля завершённых сессий ниже 50%. Попробуйте более короткие учебные спринты.", language));
-    if (stats.averageSessionSeconds > 3600) recommendations.push(bi("Your average session is long. Add Deep Study checkpoints to protect attention quality.", "Средняя сессия длинная. Добавьте контрольные точки глубокой учёбы, чтобы сохранить качество внимания.", language));
+    if (stats.currentStreak >= 3) {
+      recommendations.push(
+        bi(
+          `You have a ${stats.currentStreak}-day study streak. Keep it alive today with one small, low-friction session.`,
+          `У вас серия из ${stats.currentStreak} учебных дней. Поддержите её сегодня одной небольшой сессией без лишнего давления.`,
+          language
+        )
+      );
+    }
+    if (stats.bestFocusHour !== undefined) {
+      recommendations.push(
+        bi(
+          `Your best focus window is around ${stats.bestFocusHour.toString().padStart(2, "0")}:00. Plan the hardest study task for this time.`,
+          `Лучшее окно фокуса сейчас около ${stats.bestFocusHour.toString().padStart(2, "0")}:00. Запланируйте на это время самую сложную учебную задачу.`,
+          language
+        )
+      );
+    }
+    if (stats.interruptionRate >= 0.3 && sessions.length >= 3) {
+      recommendations.push(
+        bi(
+          "Interruptions are showing up often. Turn on Focus Shield and choose a shorter next session so it is easier to finish cleanly.",
+          "Прерывания встречаются часто. Включите щит фокуса и сделайте следующую сессию короче, чтобы её было проще завершить спокойно.",
+          language
+        )
+      );
+    }
+    if (stats.averageFocusRating !== undefined && stats.averageFocusRating < 3) {
+      recommendations.push(
+        bi(
+          "Recent focus ratings are low. Pick one concrete Study Sprint before starting a longer Deep Study block.",
+          "Последние оценки фокуса низкие. Сначала выберите один конкретный учебный спринт, а длинную глубокую учёбу оставьте на потом.",
+          language
+        )
+      );
+    }
+    if (stats.mostUsedMode) {
+      recommendations.push(
+        bi(
+          `${modeLabel(stats.mostUsedMode, language)} is your easiest entry point. Use it when you need to start quickly without tuning the setup.`,
+          `${modeLabel(stats.mostUsedMode, language)} — ваш самый привычный режим. Используйте его, когда нужно быстро начать без долгой настройки.`,
+          language
+        )
+      );
+    }
+    if (stats.completionRate < 0.5 && sessions.length >= 3) {
+      recommendations.push(
+        bi(
+          "Less than half of sessions are finished. Reduce the planned duration and define a smaller end result for the next round.",
+          "Завершается меньше половины сессий. Уменьшите плановую длительность и задайте более маленький итог для следующего подхода.",
+          language
+        )
+      );
+    }
+    if (stats.averageSessionSeconds > 3600) {
+      recommendations.push(
+        bi(
+          "Your average session is long. Add a Deep Study checkpoint so attention quality does not drift silently.",
+          "Средняя сессия получается длинной. Добавьте контрольную точку глубокой учёбы, чтобы качество внимания не проседало незаметно.",
+          language
+        )
+      );
+    }
 
     return recommendations.slice(0, 3);
   }
