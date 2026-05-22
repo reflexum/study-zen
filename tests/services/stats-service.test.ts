@@ -67,6 +67,6 @@ describe("StatsService", () => {
     expect(stats.averageFocusRating).toBe(3);
     expect(stats.interruptionRate).toBeCloseTo(2 / 3);
     expect(stats.bestFocusHour).toBe(12);
-    expect(stats.recommendations.some((recommendation) => recommendation.includes("strongest focus window"))).toBe(true);
+    expect(stats.recommendations.some((recommendation) => recommendation.includes("best focus window"))).toBe(true);
   });
 });

@@ -43,9 +43,9 @@ export class StatsView extends ItemView {
     this.card(grid, this.t("Interruptions", "Прерывания"), `${Math.round(stats.interruptionRate * 100)}%`);
     this.card(grid, this.t("Streak", "Серия"), this.t(`${stats.currentStreak} days`, `${stats.currentStreak} дн.`));
     this.card(grid, this.t("Average", "Среднее"), this.statsService.formatDuration(stats.averageSessionSeconds));
-    this.card(grid, this.t("Top mode", "Главный режим"), stats.mostUsedMode ? modeLabel(stats.mostUsedMode, language) : this.t("None yet", "Пока нет"));
-    this.card(grid, this.t("Focus rating", "Оценка фокуса"), stats.averageFocusRating === undefined ? this.t("None yet", "Пока нет") : `${stats.averageFocusRating}/5`);
-    this.card(grid, this.t("Best window", "Лучшее окно"), stats.bestFocusHour === undefined ? this.t("None yet", "Пока нет") : `${stats.bestFocusHour.toString().padStart(2, "0")}:00`);
+    this.card(grid, this.t("Top mode", "Главный режим"), stats.mostUsedMode ? modeLabel(stats.mostUsedMode, language) : this.t("None yet", "Пока нет"), true);
+    this.card(grid, this.t("Focus rating", "Оценка фокуса"), stats.averageFocusRating === undefined ? this.t("None yet", "Пока нет") : `${stats.averageFocusRating}/5`, stats.averageFocusRating === undefined);
+    this.card(grid, this.t("Best window", "Лучшее окно"), stats.bestFocusHour === undefined ? this.t("None yet", "Пока нет") : `${stats.bestFocusHour.toString().padStart(2, "0")}:00`, stats.bestFocusHour === undefined);
 
     container.createEl("h3", { text: this.t("Recommendations", "Рекомендации") });
     const list = container.createEl("ul");
@@ -67,10 +67,10 @@ export class StatsView extends ItemView {
     }
   }
 
-  private card(parent: HTMLElement, label: string, value: string): void {
+  private card(parent: HTMLElement, label: string, value: string, textValue = false): void {
     const card = parent.createDiv({ cls: "study-zen-stat-card" });
-    card.createDiv({ text: label });
-    card.createDiv({ cls: "study-zen-stat-value", text: value });
+    card.createDiv({ cls: "study-zen-stat-label", text: label });
+    card.createDiv({ cls: textValue ? "study-zen-stat-value is-text" : "study-zen-stat-value", text: value });
   }
 
   private t(en: string, ru: string): string {
